@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/GPGPU-Rasterizer/.vs/GPGPU-Rasterizer/v16
+/GPGPU-Rasterizer/x64
+/GPGPU-Rasterizer/Release
+/GPGPU-Rasterizer/GPGPU-Rasterizer/x64
+/GPGPU-Rasterizer/GPGPU-Rasterizer/Release
+/GPGPU-Rasterizer/GPGPU-Rasterizer/Debug
+/GPGPU-Rasterizer/Debug
