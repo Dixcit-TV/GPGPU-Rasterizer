@@ -9,3 +9,12 @@
 /GPGPU-Rasterizer/Application/Release
 /GPGPU-Rasterizer/Application/Debug
 /GPGPU-Rasterizer/Debug
+/GPGPU-Rasterizer/Win32
+/GPGPU-Rasterizer/DXLib/x64
+/GPGPU-Rasterizer/DXLib/Win32
+/GPGPU-Rasterizer/DXLib/Release
+/GPGPU-Rasterizer/DXLib/Debug
+/GPGPU-Rasterizer/DX11-HardwarePipeline/x64
+/GPGPU-Rasterizer/DX11-HardwarePipeline/Win32
+/GPGPU-Rasterizer/DX11-HardwarePipeline/Release
+/GPGPU-Rasterizer/DX11-HardwarePipeline/Debug
