@@ -8,5 +8,13 @@
 #define PCH_H
 
 // add headers that you want to pre-compile here
+#include <dxgi.h>
+#pragma comment(lib, "dxgi.lib")
+#include <d3d11.h>
+#pragma comment(lib, "d3d11.lib")
+#include <d3dcompiler.h>
+#pragma comment(lib, "d3dcompiler.lib")
+
+#pragma comment(lib, "DXLib.lib")
 
 #endif //PCH_H

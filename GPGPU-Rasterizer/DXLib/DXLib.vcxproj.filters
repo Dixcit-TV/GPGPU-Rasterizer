@@ -2,9 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="framework.h" />
+    <ClInclude Include="Render\DXRenderer.h" />
+    <ClInclude Include="WindowAndViewport\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Render\DXRenderer.cpp" />
+    <ClCompile Include="WindowAndViewport\Window.cpp" />
   </ItemGroup>
 </Project>
