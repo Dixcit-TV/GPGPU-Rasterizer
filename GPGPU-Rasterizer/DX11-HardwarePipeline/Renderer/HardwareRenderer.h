@@ -1,4 +1,5 @@
 #pragma once
+#include <DirectXColors.h>
 class Window;
 
 class HardwareRenderer
@@ -14,13 +15,20 @@ public:
 
 	HRESULT Initialize(const Window& window);
 
-private:
-	ID3D11Device* pDxDevice;
-	ID3D11DeviceContext* pDxDeviceContext;
-	IDXGISwapChain* pDxSwapChain;
-	ID3D11RenderTargetView* pRenderTargetView;
-	ID3D11DepthStencilView* pDepthStencilView;
+	void Present() const { m_pDxSwapChain->Present(0, 0); }
+	void ClearBuffers() const
+	{
+		m_pDxDeviceContext->ClearRenderTargetView(m_pRenderTargetView, reinterpret_cast<const float*>(&DirectX::Colors::Black));
+		m_pDxDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	}
 
-	bool bInitialized;
+private:
+	ID3D11Device* m_pDxDevice;
+	ID3D11DeviceContext* m_pDxDeviceContext;
+	IDXGISwapChain* m_pDxSwapChain;
+	ID3D11RenderTargetView* m_pRenderTargetView;
+	ID3D11DepthStencilView* m_pDepthStencilView;
+
+	bool m_bInitialized;
 };
 

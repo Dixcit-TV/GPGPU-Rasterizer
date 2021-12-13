@@ -3,21 +3,21 @@
 #include "WindowAndViewport/Window.h"
 
 HardwareRenderer::HardwareRenderer()
-	: pDxDevice{ nullptr }
-	, pDxDeviceContext{ nullptr }
-	, pDxSwapChain{ nullptr }
-	, pRenderTargetView{ nullptr }
-	, pDepthStencilView{ nullptr }
-	, bInitialized{ false }
+	: m_pDxDevice{ nullptr }
+	, m_pDxDeviceContext{ nullptr }
+	, m_pDxSwapChain{ nullptr }
+	, m_pRenderTargetView{ nullptr }
+	, m_pDepthStencilView{ nullptr }
+	, m_bInitialized{ false }
 {}
 
 HardwareRenderer::~HardwareRenderer()
 {
-	SafeRelease(pDepthStencilView);
-	SafeRelease(pRenderTargetView);
-	SafeRelease(pDxSwapChain);
-	SafeRelease(pDxDeviceContext);
-	SafeRelease(pDxDevice);
+	SafeRelease(m_pDepthStencilView);
+	SafeRelease(m_pRenderTargetView);
+	SafeRelease(m_pDxSwapChain);
+	SafeRelease(m_pDxDeviceContext);
+	SafeRelease(m_pDxDevice);
 }
 
 HRESULT HardwareRenderer::Initialize(const Window& window)
@@ -35,12 +35,12 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 
 	D3D_FEATURE_LEVEL featureLevel{ };
 
-	res = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, crDeviceFlag, nullptr, 0, D3D11_SDK_VERSION, &pDxDevice, &featureLevel, &pDxDeviceContext);
+	res = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, crDeviceFlag, nullptr, 0, D3D11_SDK_VERSION, &m_pDxDevice, &featureLevel, &m_pDxDeviceContext);
 	if (FAILED(res)) return res;
 	if (featureLevel < D3D_FEATURE_LEVEL_11_0) return E_FAIL;
 
 	IDXGIDevice* dxgiDevice;
-	res = pDxDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
+	res = m_pDxDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
 	if (FAILED(res)) return res;
 
 	IDXGIAdapter* dxgiAdapter;
@@ -97,14 +97,14 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 
 	delete[] bbDescs;
 
-	res = dxgiFactory->CreateSwapChain(pDxDevice, &swapDesc, &pDxSwapChain);
+	res = dxgiFactory->CreateSwapChain(m_pDxDevice, &swapDesc, &m_pDxSwapChain);
 	if (FAILED(res)) return res;
 
 	ID3D11Texture2D* pbackBuffer;
-	res = pDxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pbackBuffer));
+	res = m_pDxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pbackBuffer));
 	if (FAILED(res)) return res;
 
-	res = pDxDevice->CreateRenderTargetView(pbackBuffer, nullptr, &pRenderTargetView);
+	res = m_pDxDevice->CreateRenderTargetView(pbackBuffer, nullptr, &m_pRenderTargetView);
 	if (FAILED(res)) return res;
 
 	D3D11_TEXTURE2D_DESC depthStencilDesc{};
@@ -113,13 +113,13 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
 	ID3D11Texture2D* pdepthStencilBuffer;
-	res = pDxDevice->CreateTexture2D(&depthStencilDesc, nullptr, &pdepthStencilBuffer);
+	res = m_pDxDevice->CreateTexture2D(&depthStencilDesc, nullptr, &pdepthStencilBuffer);
 	if (FAILED(res)) return res;
 
-	res = pDxDevice->CreateDepthStencilView(pdepthStencilBuffer, nullptr, &pDepthStencilView);
+	res = m_pDxDevice->CreateDepthStencilView(pdepthStencilBuffer, nullptr, &m_pDepthStencilView);
 	if (FAILED(res)) return res;
 
-	pDxDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);
+	m_pDxDeviceContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
 
 	D3D11_VIEWPORT viewPort{};
 	viewPort.TopLeftX = 0.f;
@@ -129,7 +129,7 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 	viewPort.MinDepth = 0.f;
 	viewPort.MaxDepth = 1.f;
 
-	pDxDeviceContext->RSSetViewports(1, &viewPort);
+	m_pDxDeviceContext->RSSetViewports(1, &viewPort);
 
 	pdepthStencilBuffer->Release();
 	pbackBuffer->Release();
@@ -137,6 +137,6 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 	dxgiAdapter->Release();
 	dxgiFactory->Release();
 
-	bInitialized = true;
+	m_bInitialized = true;
 	return res;
 }

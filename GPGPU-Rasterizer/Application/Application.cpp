@@ -7,13 +7,13 @@ int wmain(int argc, wchar_t* argv[])
     UNREFERENCED_PARAMETER(argc);
     UNREFERENCED_PARAMETER(argv);
 
-    HardwareRenderer a{};
+    HardwareRenderer hwRenderer{};
 
     wchar_t windowName[]{ TEXT("GPU Rasterizer - Dixcit") };
     Window wnd{ windowName, 1920u, 1080u };
     wnd.Init();
 
-    a.Initialize(wnd);
+	hwRenderer.Initialize(wnd);
 
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
@@ -27,6 +27,7 @@ int wmain(int argc, wchar_t* argv[])
 				break;
 		}
 
-
+		hwRenderer.ClearBuffers();
+		hwRenderer.Present();
 	}
 }
