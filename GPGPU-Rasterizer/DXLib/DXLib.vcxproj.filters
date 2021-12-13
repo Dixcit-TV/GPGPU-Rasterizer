@@ -4,10 +4,12 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Render\DXRenderer.h" />
     <ClInclude Include="WindowAndViewport\Window.h" />
+    <ClInclude Include="Camera\Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Render\DXRenderer.cpp" />
     <ClCompile Include="WindowAndViewport\Window.cpp" />
+    <ClCompile Include="Camera\Camera.cpp" />
   </ItemGroup>
 </Project>
