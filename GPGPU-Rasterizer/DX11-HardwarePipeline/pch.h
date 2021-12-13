@@ -11,7 +11,6 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <cassert>
-#include <cstdint>
 #include <type_traits>
 
 #include <dxgi.h>

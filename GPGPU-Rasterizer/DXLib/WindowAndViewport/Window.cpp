@@ -38,18 +38,17 @@ void Window::Init(WNDPROC wndProcExt)
     }
 
     m_Handle = CreateWindowEx(
-        WS_EX_OVERLAPPEDWINDOW,// Optional window styles.
-        wClassName,// Window class
-        m_Name.c_str(),// Window Name
-        WS_OVERLAPPEDWINDOW,// Window style
-        // Size and position
+        WS_EX_OVERLAPPEDWINDOW,
+        wClassName,
+        m_Name.c_str(),
+        WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         m_Width,
         m_Height,
-        nullptr,       // Parent window    
-        nullptr,       // Menu
-        wc.hInstance,  // Instance handle
+        nullptr,
+        nullptr,
+        wc.hInstance,
         this
     );
 

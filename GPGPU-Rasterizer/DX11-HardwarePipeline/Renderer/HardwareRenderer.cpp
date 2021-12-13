@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "HardwareRenderer.h"
+#include "WindowAndViewport/Window.h"
 
 HardwareRenderer::HardwareRenderer()
 	: pDxDevice{ nullptr }

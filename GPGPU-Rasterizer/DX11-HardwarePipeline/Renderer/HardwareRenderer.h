@@ -1,5 +1,5 @@
 #pragma once
-#include "WindowAndViewport/Window.h"
+class Window;
 
 class HardwareRenderer
 {

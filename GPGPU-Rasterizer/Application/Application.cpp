@@ -1,6 +1,6 @@
 #include "pch.h"
-#include <iostream>
-#include <Renderer/HardwareRenderer.h>
+#include "WindowAndViewport/Window.h"
+#include "Renderer/HardwareRenderer.h"
 
 int wmain(int argc, wchar_t* argv[])
 {
