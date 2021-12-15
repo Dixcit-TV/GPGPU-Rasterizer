@@ -184,11 +184,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Material\Material.h" />
+    <ClInclude Include="Mesh\TriangleMesh.h" />
     <ClInclude Include="Renderer\HardwareRenderer.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Material\Material.cpp" />
+    <ClCompile Include="Mesh\TriangleMesh.cpp" />
     <ClCompile Include="Renderer\HardwareRenderer.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

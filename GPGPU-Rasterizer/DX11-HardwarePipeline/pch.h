@@ -9,7 +9,8 @@
 
 // add headers that you want to pre-compile here
 #define WIN32_LEAN_AND_MEAN
-
+#include <iostream>
+#include <sstream>
 #include <cassert>
 #include <type_traits>
 
@@ -19,5 +20,6 @@
 #pragma comment(lib, "d3d11.lib")
 #include <d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "dxguid.lib")
 
 #endif //PCH_H

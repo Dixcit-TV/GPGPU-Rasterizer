@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXColors.h>
 class Window;
+class TriangleMesh;
 
 class HardwareRenderer
 {
@@ -24,6 +25,8 @@ public:
 		m_pDxDeviceContext->ClearRenderTargetView(m_pRenderTargetView, reinterpret_cast<const float*>(&DirectX::Colors::Black));
 		m_pDxDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
+
+	void DrawIndexed(TriangleMesh* pmesh) const;
 
 private:
 	ID3D11Device* m_pDxDevice;

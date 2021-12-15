@@ -1,7 +1,11 @@
 #include "pch.h"
 #include "HardwareRenderer.h"
+
+#include "../Mesh/TriangleMesh.h"
 #include "Common/Helpers.h"
 #include "WindowAndViewport/Window.h"
+
+class TriangleMesh;
 
 HardwareRenderer::HardwareRenderer()
 	: m_pDxDevice{ nullptr }
@@ -92,7 +96,7 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 	swapDesc.SampleDesc.Count = 1;
 	swapDesc.SampleDesc.Quality = 0;
 	swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-	swapDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapDesc.Windowed = true;
 	swapDesc.OutputWindow = window.GetHandle();
 
@@ -140,4 +144,10 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 
 	m_bInitialized = true;
 	return res;
+}
+
+void HardwareRenderer::DrawIndexed(TriangleMesh* pmesh) const
+{
+	pmesh->SetupDrawInfo(m_pDxDeviceContext);
+	m_pDxDeviceContext->DrawIndexed(pmesh->GetIndexCount(), 0, 0);
 }

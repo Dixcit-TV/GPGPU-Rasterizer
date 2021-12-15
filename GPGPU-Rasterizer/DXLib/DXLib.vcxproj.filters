@@ -5,7 +5,6 @@
     <ClInclude Include="Render\DXRenderer.h" />
     <ClInclude Include="WindowAndViewport\Window.h" />
     <ClInclude Include="Camera\Camera.h" />
-    <ClInclude Include="Mesh\TriangleMesh.h" />
     <ClInclude Include="Render\Shader\Shader.h" />
     <ClInclude Include="Common\Helpers.h" />
   </ItemGroup>
@@ -14,7 +13,6 @@
     <ClCompile Include="Render\DXRenderer.cpp" />
     <ClCompile Include="WindowAndViewport\Window.cpp" />
     <ClCompile Include="Camera\Camera.cpp" />
-    <ClCompile Include="Mesh\TriangleMesh.cpp" />
     <ClCompile Include="Common\Helpers.cpp" />
   </ItemGroup>
 </Project>

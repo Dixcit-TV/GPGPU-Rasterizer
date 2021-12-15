@@ -167,7 +167,6 @@
     <ClInclude Include="Common\Helpers.h" />
     <ClInclude Include="Render\DXRenderer.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Mesh\TriangleMesh.h" />
     <ClInclude Include="Render\Shader\Shader.h" />
     <ClInclude Include="WindowAndViewport\Window.h" />
   </ItemGroup>
@@ -181,7 +180,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Mesh\TriangleMesh.cpp" />
     <ClCompile Include="WindowAndViewport\Window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

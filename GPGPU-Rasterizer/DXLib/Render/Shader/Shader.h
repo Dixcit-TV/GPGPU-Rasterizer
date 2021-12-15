@@ -1,4 +1,5 @@
 #pragma once
+#include <sstream>
 #include <string>
 #include "../../Common/Helpers.h"
 
@@ -12,7 +13,7 @@ class Shader
 {
 	using ShaderCreationFnc = HRESULT(ID3D11Device::*)(const void*, SIZE_T, ID3D11ClassLinkage*, SHADER_TYPE**);
 public:
-	explicit Shader(const wchar_t* filePath, const char* entryPoint = nullptr);
+	explicit Shader(ID3D11Device* pdevice, const wchar_t* filePath, const char* entryPoint = "main");
 	~Shader();
 
 	Shader(const Shader&) = delete;
@@ -20,19 +21,21 @@ public:
 	Shader& operator=(const Shader&) = delete;
 	Shader& operator=(Shader&&) noexcept = delete;
 
-	SHADER_TYPE* GetShader() const { return m_Shader; }
+	SHADER_TYPE* GetShader() const { return m_pShader; }
+	ID3DBlob* GetShaderBlob() const { return m_pShaderBlob; }
 
 private:
-	SHADER_TYPE* m_Shader;
+	SHADER_TYPE* m_pShader;
+	ID3DBlob* m_pShaderBlob;
 
-	HRESULT Init(const wchar_t* filePath, const char* entryPoint);
+	HRESULT Init(ID3D11Device* pdevice, const wchar_t* filePath, const char* entryPoint);
 };
 
 template<typename SHADER_TYPE>
-Shader<SHADER_TYPE>::Shader(const wchar_t* filePath, const char* entryPoint)
-	: m_Shader{ nullptr }
+Shader<SHADER_TYPE>::Shader(ID3D11Device* pdevice, const wchar_t* filePath, const char* entryPoint)
+	: m_pShader{ nullptr }
 {
-	const HRESULT res{ Init(filePath, entryPoint) };
+	const HRESULT res{ Init(pdevice, filePath, entryPoint) };
 	if (FAILED(res))
 		res;
 }
@@ -40,14 +43,13 @@ Shader<SHADER_TYPE>::Shader(const wchar_t* filePath, const char* entryPoint)
 template<typename SHADER_TYPE>
 Shader<SHADER_TYPE>::~Shader()
 {
-	Helpers::SafeRelease(m_Shader);
+	Helpers::SafeRelease(m_pShaderBlob);
+	Helpers::SafeRelease(m_pShader);
 }
 
 template<typename SHADER_TYPE>
-HRESULT Shader<SHADER_TYPE>::Init(const wchar_t* filePath, const char* entryPoint)
+HRESULT Shader<SHADER_TYPE>::Init(ID3D11Device* pdevice, const wchar_t* filePath, const char* entryPoint)
 {
-	ID3D11Device* pdevice{ nullptr };
-	ID3DBlob* pshaderBlob{ nullptr };
 	ID3DBlob* perrorBlob{ nullptr };
 
 	UINT flags{ 0 };
@@ -64,7 +66,7 @@ HRESULT Shader<SHADER_TYPE>::Init(const wchar_t* filePath, const char* entryPoin
 
 	if constexpr (std::is_same_v<SHADER_TYPE, ID3D11VertexShader>)
 	{
-		target = "ps_5_0";
+		target = "vs_5_0";
 		shaderFnc = &ID3D11Device::CreateVertexShader;
 	}
 	else if constexpr (std::is_same_v<SHADER_TYPE, ID3D11HullShader>)
@@ -97,10 +99,32 @@ HRESULT Shader<SHADER_TYPE>::Init(const wchar_t* filePath, const char* entryPoin
 		return res;
 	}
 
-	res = D3DCompileFromFile(filePath, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint, target.c_str(), flags, 0, &pshaderBlob, &perrorBlob);
+	res = D3DCompileFromFile(filePath, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint, target.c_str(), flags, 0, &m_pShaderBlob, &perrorBlob);
 
-	if (SUCCEEDED(res))
-		res = (pdevice->*shaderFnc)(pshaderBlob->GetBufferPointer(), pshaderBlob->GetBufferSize(), nullptr, &m_Shader);
+	if (FAILED(res))
+	{
+		if (perrorBlob != nullptr)
+		{
+			char* errors = (char*)perrorBlob->GetBufferPointer();
 
-	return res;
+			std::wstringstream ss;
+			for (unsigned int i = 0; i < perrorBlob->GetBufferSize(); i++)
+				ss << errors[i];
+
+			OutputDebugStringW(ss.str().c_str());
+			Helpers::SafeRelease(perrorBlob);
+
+			std::wcout << ss.str() << std::endl;
+			return res;
+		}
+
+		std::wstringstream ss;
+		ss << "EffectLoader: Failed to CreateEffectFromFile!\nPath: ";
+		ss << filePath;
+
+		std::wcout << ss.str() << std::endl;
+		return res;
+	}
+
+	return (pdevice->*shaderFnc)(m_pShaderBlob->GetBufferPointer(), m_pShaderBlob->GetBufferSize(), nullptr, &m_pShader);
 }
