@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXColors.h>
+class Camera;
 class Window;
 class TriangleMesh;
 
@@ -26,7 +27,7 @@ public:
 		m_pDxDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 
-	void DrawIndexed(TriangleMesh* pmesh) const;
+	void DrawIndexed(Camera* pcamera, TriangleMesh* pmesh) const;
 
 private:
 	ID3D11Device* m_pDxDevice;

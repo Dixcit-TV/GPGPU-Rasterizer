@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "TriangleMesh.h"
 
+#include "Common/Structs.h"
 #include "../Material/Material.h"
+#include "Camera/Camera.h"
 
 TriangleMesh::TriangleMesh(std::vector<DirectX::XMFLOAT3>&& positions, std::vector<DirectX::XMFLOAT3>&& normals, std::vector<DirectX::XMFLOAT2>&& uvs, std::vector<uint32_t>&& indices, bool calculateTangents)
 	: m_WorldMatrix{  }
@@ -95,7 +97,7 @@ void TriangleMesh::BuildIndexBuffer(ID3D11Device* pdevice)
 		return;
 }
 
-void TriangleMesh::SetupDrawInfo(ID3D11DeviceContext* pdeviceContext) const
+void TriangleMesh::SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceContext) const
 {
 	if (!m_pMaterial)
 		return;
@@ -106,5 +108,12 @@ void TriangleMesh::SetupDrawInfo(ID3D11DeviceContext* pdeviceContext) const
 	pdeviceContext->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	pdeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	DirectX::XMFLOAT4X4 world{};
+	DirectX::XMFLOAT4X4 viewProj{ pcamera->GetViewProjection() };
+	DirectX::XMFLOAT4X4 worldViewProj{};
+
+	XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
+	XMStoreFloat4x4(&worldViewProj, DirectX::XMMatrixIdentity() * XMLoadFloat4x4(&viewProj));
+	m_pMaterial->SetConstantBuffer<HelperStruct::CameraVertexMatrices>(pdeviceContext, EShaderType::Vertex, 0u, worldViewProj, world);
 	m_pMaterial->SetShaders(pdeviceContext);
 }

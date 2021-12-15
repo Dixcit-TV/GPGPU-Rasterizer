@@ -2,6 +2,7 @@
 #include "HardwareRenderer.h"
 
 #include "../Mesh/TriangleMesh.h"
+#include "Camera/Camera.h"
 #include "Common/Helpers.h"
 #include "WindowAndViewport/Window.h"
 
@@ -87,7 +88,7 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 
 
 	if (FAILED(res)) return res;
-	tempOutput->Release();
+	Helpers::SafeRelease(tempOutput);
 
 	DXGI_SWAP_CHAIN_DESC swapDesc{};
 	swapDesc.BufferDesc = bbDescs[bbDescIdx];
@@ -96,7 +97,7 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 	swapDesc.SampleDesc.Count = 1;
 	swapDesc.SampleDesc.Quality = 0;
 	swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-	swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	swapDesc.Windowed = true;
 	swapDesc.OutputWindow = window.GetHandle();
 
@@ -136,18 +137,18 @@ HRESULT HardwareRenderer::Initialize(const Window& window)
 
 	m_pDxDeviceContext->RSSetViewports(1, &viewPort);
 
-	pdepthStencilBuffer->Release();
-	pbackBuffer->Release();
-	dxgiDevice->Release();
-	dxgiAdapter->Release();
-	dxgiFactory->Release();
+	Helpers::SafeRelease(pdepthStencilBuffer);
+	Helpers::SafeRelease(pbackBuffer);
+	Helpers::SafeRelease(dxgiDevice);
+	Helpers::SafeRelease(dxgiAdapter);
+	Helpers::SafeRelease(dxgiFactory);
 
 	m_bInitialized = true;
 	return res;
 }
 
-void HardwareRenderer::DrawIndexed(TriangleMesh* pmesh) const
+void HardwareRenderer::DrawIndexed(Camera* pcamera, TriangleMesh* pmesh) const
 {
-	pmesh->SetupDrawInfo(m_pDxDeviceContext);
+	pmesh->SetupDrawInfo(pcamera, m_pDxDeviceContext);
 	m_pDxDeviceContext->DrawIndexed(pmesh->GetIndexCount(), 0, 0);
 }

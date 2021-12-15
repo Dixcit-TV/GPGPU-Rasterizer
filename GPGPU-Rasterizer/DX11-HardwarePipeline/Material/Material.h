@@ -17,7 +17,8 @@ public:
 	Material& operator=(const Material&) = delete;
 	Material& operator=(Material&&) noexcept = delete;
 
-	void InitConstantBuffer(ID3D11Device* pdevice, EShaderType type, UINT idx, const D3D11_BUFFER_DESC& bufferDesc);
+	template<typename TARGET_TYPE>
+	void InitConstantBuffer(ID3D11Device* pdevice, EShaderType type, UINT idx);
 	template<typename TARGET_TYPE, typename... ARG_TYPE>
 	void SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, EShaderType type, UINT idx, ARG_TYPE&&... args);
 
@@ -45,6 +46,24 @@ private:
 	void SetShaderParameters(EShaderType shaderType, ID3D11DeviceContext* pdeviceContext) const;
 };
 
+template<typename TARGET_TYPE>
+void Material::InitConstantBuffer(ID3D11Device* pdevice, EShaderType type, UINT idx)
+{
+	assert(m_ShaderConstantBuffers[type].size() > idx);
+
+	D3D11_BUFFER_DESC bufferDesc{};
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.ByteWidth = sizeof(TARGET_TYPE);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = 0;
+
+	const HRESULT res{ pdevice->CreateBuffer(&bufferDesc, nullptr, &m_ShaderConstantBuffers[type][idx]) };
+	if (FAILED(res))
+		res;
+}
+
 template<typename TARGET_TYPE, typename... ARG_TYPE>
 void Material::SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, EShaderType type, UINT idx, ARG_TYPE&&... args)
 {
@@ -61,7 +80,7 @@ void Material::SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, EShaderTyp
 
 	// Get a pointer to the data in the constant buffer.
 	TARGET_TYPE* dataPtr{ static_cast<TARGET_TYPE*>(mappedResource.pData) };
-	*dataPtr = TARGET_TYPE(std::forward<TARGET_TYPE>(args)...);
+	*dataPtr = TARGET_TYPE{ std::forward<ARG_TYPE>(args)... };
 
 	pdeviceContext->Unmap(pbuffer, 0);
 }

@@ -17,21 +17,18 @@ Material::Material(ID3D11Device* pdevice, const wchar_t* vsPath, const wchar_t* 
 
 Material::~Material()
 {
+	for (auto& bufferPairs : m_ShaderConstantBuffers)
+	{
+		for (ID3D11Buffer*& pbuffer : bufferPairs.second)
+			Helpers::SafeRelease(pbuffer);
+	}
+
 	Helpers::SafeRelease(m_InputLayout);
 	Helpers::SafeDelete(m_pVertexShader);
 	Helpers::SafeDelete(m_pHullShader);
 	Helpers::SafeDelete(m_pDomainShader);
 	Helpers::SafeDelete(m_pGeometryShader);
 	Helpers::SafeDelete(m_pPixelShader);
-}
-
-void Material::InitConstantBuffer(ID3D11Device* pdevice, EShaderType type, UINT idx, const D3D11_BUFFER_DESC& bufferDesc)
-{
-	assert(m_ShaderConstantBuffers[type].size() > idx);
-
-	const HRESULT res{ pdevice->CreateBuffer(&bufferDesc, nullptr, &m_ShaderConstantBuffers[type][idx]) };
-	if (FAILED(res))
-		res;
 }
 
 void Material::SetConstantBufferCount(EShaderType type, UINT newCount)

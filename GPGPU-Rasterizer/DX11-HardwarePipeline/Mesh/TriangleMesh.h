@@ -2,6 +2,7 @@
 #include <DirectXMath.h>
 #include <vector>
 
+class Camera;
 class Material;
 
 class TriangleMesh
@@ -16,7 +17,7 @@ public:
 	TriangleMesh& operator=(TriangleMesh&&) noexcept = delete;
 
 	void SetMaterial(ID3D11Device* pdevice, Material* pmaterial);
-	void SetupDrawInfo(ID3D11DeviceContext* pdeviceContext) const;
+	void SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceContext) const;
 
 	UINT GetIndexCount() const { return static_cast<UINT>(std::size(m_Indices)); }
 

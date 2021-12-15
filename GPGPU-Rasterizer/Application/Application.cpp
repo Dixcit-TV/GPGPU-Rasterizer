@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include <vector>
+#include "Camera/Camera.h"
+#include "Common/Structs.h"
 #include "Mesh/TriangleMesh.h"
 #include "Material/Material.h"
 #include "WindowAndViewport/Window.h"
@@ -8,27 +10,30 @@
 
 int wmain(int argc, wchar_t* argv[])
 {
-    UNREFERENCED_PARAMETER(argc);
-    UNREFERENCED_PARAMETER(argv);
+	UNREFERENCED_PARAMETER(argc);
+	UNREFERENCED_PARAMETER(argv);
 
-    HardwareRenderer hwRenderer{};
+	wchar_t windowName[]{ TEXT("GPU Rasterizer - Dixcit") };
+	Window wnd{ windowName, 1920u, 1080u };
+	HardwareRenderer hwRenderer{};
+	Camera camera{ DirectX::XMFLOAT3{0.f, 0.f, -100.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
 
-    wchar_t windowName[]{ TEXT("GPU Rasterizer - Dixcit") };
-    Window wnd{ windowName, 1920u, 1080u };
 	wnd.Init();
 
 	hwRenderer.Initialize(wnd);
 
 	std::vector positions{
-		DirectX::XMFLOAT3{0.f, 0.5f, 0.5f}
-		, DirectX::XMFLOAT3{0.5f, -0.5f, 0.5f}
-		, DirectX::XMFLOAT3{-0.5f, -0.5f, 0.5f}
+		DirectX::XMFLOAT3{0.f, 20.f, 0.f}
+		, DirectX::XMFLOAT3{20.f, -20.f, 0.f}
+		, DirectX::XMFLOAT3{-20.f, -20.f, 0.f}
 	};
 
 	std::vector<uint32_t> indices{ 0, 1, 2 };
 
 	TriangleMesh mesh{ std::move(positions), {}, {}, std::move(indices) };
 	Material mat{ hwRenderer.GetDevice(), L"./Resources/HardwareShader/VS_PosNormUV.hlsl", nullptr, nullptr, nullptr, L"Resources/HardwareShader/PS_LambertDiffuse.hlsl" };
+	mat.SetConstantBufferCount(EShaderType::Vertex, 1);
+	mat.InitConstantBuffer<HelperStruct::CameraVertexMatrices>(hwRenderer.GetDevice(), EShaderType::Vertex, 0);
 	mesh.SetMaterial(hwRenderer.GetDevice(), &mat);
 
 	MSG msg;
@@ -44,7 +49,7 @@ int wmain(int argc, wchar_t* argv[])
 		}
 
 		hwRenderer.ClearBuffers();
-		hwRenderer.DrawIndexed(&mesh);
+		hwRenderer.DrawIndexed(&camera, &mesh);
 		hwRenderer.Present();
 	}
 }
