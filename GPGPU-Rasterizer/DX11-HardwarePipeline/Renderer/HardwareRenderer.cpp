@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "HardwareRenderer.h"
+#include "Common/Helpers.h"
 #include "WindowAndViewport/Window.h"
 
 HardwareRenderer::HardwareRenderer()
@@ -13,11 +14,11 @@ HardwareRenderer::HardwareRenderer()
 
 HardwareRenderer::~HardwareRenderer()
 {
-	SafeRelease(m_pDepthStencilView);
-	SafeRelease(m_pRenderTargetView);
-	SafeRelease(m_pDxSwapChain);
-	SafeRelease(m_pDxDeviceContext);
-	SafeRelease(m_pDxDevice);
+	Helpers::SafeRelease(m_pDepthStencilView);
+	Helpers::SafeRelease(m_pRenderTargetView);
+	Helpers::SafeRelease(m_pDxSwapChain);
+	Helpers::SafeRelease(m_pDxDeviceContext);
+	Helpers::SafeRelease(m_pDxDevice);
 }
 
 HRESULT HardwareRenderer::Initialize(const Window& window)

@@ -10,6 +10,9 @@
 // add headers that you want to pre-compile here
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <cstdint>
+#include <vector>
+#include <DirectXMath.h>
 
 //Include DX11
 #include <dxgi.h>

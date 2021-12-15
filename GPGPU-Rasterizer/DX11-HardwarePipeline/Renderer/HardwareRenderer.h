@@ -15,6 +15,9 @@ public:
 
 	HRESULT Initialize(const Window& window);
 
+	ID3D11Device* GetDevice() const { return m_pDxDevice; }
+	ID3D11DeviceContext* GetDeviceContext() const { return m_pDxDeviceContext; }
+
 	void Present() const { m_pDxSwapChain->Present(0, 0); }
 	void ClearBuffers() const
 	{

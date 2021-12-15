@@ -3,9 +3,11 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Renderer\HardwareRenderer.h" />
+    <ClInclude Include="Material\Material.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Renderer\HardwareRenderer.cpp" />
+    <ClCompile Include="Material\Material.cpp" />
   </ItemGroup>
 </Project>
