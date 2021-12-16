@@ -105,16 +105,14 @@ HRESULT Shader<SHADER_TYPE>::Init(ID3D11Device* pdevice, const wchar_t* filePath
 	{
 		if (perrorBlob != nullptr)
 		{
-			char* errors = (char*)perrorBlob->GetBufferPointer();
+			char* errors = static_cast<char*>(perrorBlob->GetBufferPointer());
 
-			std::wstringstream ss;
-			for (unsigned int i = 0; i < perrorBlob->GetBufferSize(); i++)
-				ss << errors[i];
+			const std::string errorString{ errors, perrorBlob->GetBufferSize() };
 
-			OutputDebugStringW(ss.str().c_str());
+			OutputDebugStringA(errorString.c_str());
 			Helpers::SafeRelease(perrorBlob);
 
-			std::wcout << ss.str() << std::endl;
+			std::wcout << errorString.c_str() << std::endl;
 			return res;
 		}
 

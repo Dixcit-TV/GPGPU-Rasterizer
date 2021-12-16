@@ -13,6 +13,11 @@ Material::Material(ID3D11Device* pdevice, const wchar_t* vsPath, const wchar_t* 
 	, m_InputLayoutSize{ 0 }
 {
 	GenerateInputLayout(pdevice);
+	InitConstantBuffers(pdevice, m_pVertexShader, EShaderType::Vertex);
+	InitConstantBuffers(pdevice, m_pHullShader, EShaderType::Hull);
+	InitConstantBuffers(pdevice, m_pDomainShader, EShaderType::Domain);
+	InitConstantBuffers(pdevice, m_pGeometryShader, EShaderType::Geometry);
+	InitConstantBuffers(pdevice, m_pPixelShader, EShaderType::Pixel);
 }
 
 Material::~Material()
@@ -29,11 +34,6 @@ Material::~Material()
 	Helpers::SafeDelete(m_pDomainShader);
 	Helpers::SafeDelete(m_pGeometryShader);
 	Helpers::SafeDelete(m_pPixelShader);
-}
-
-void Material::SetConstantBufferCount(EShaderType type, UINT newCount)
-{
-	m_ShaderConstantBuffers[type].resize(newCount);
 }
 
 void Material::SetShaders(ID3D11DeviceContext* pdeviceContext) const
@@ -80,7 +80,7 @@ void Material::SetShaderParameters(EShaderType shaderType, ID3D11DeviceContext* 
 
 void Material::GenerateInputLayout(ID3D11Device* pdevice)
 {
-	if (m_InputLayout || !m_pVertexShader || !m_pVertexShader->GetShader())
+	if (!m_pVertexShader || !m_pVertexShader->GetShader())
 		return;
 
 	ID3D11ShaderReflection* pReflector;
@@ -94,10 +94,10 @@ void Material::GenerateInputLayout(ID3D11Device* pdevice)
 	pReflector->GetDesc(&shaderDesc);
 
 	UINT byteOffset = 0;
-	for (UINT i = 0; i < shaderDesc.InputParameters; ++i)
+	for (UINT idx{}; idx < shaderDesc.InputParameters; ++idx)
 	{
 		D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
-		pReflector->GetInputParameterDesc(i, &paramDesc);
+		pReflector->GetInputParameterDesc(idx, &paramDesc);
 
 		// create input element desc
 		D3D11_INPUT_ELEMENT_DESC elementDesc;

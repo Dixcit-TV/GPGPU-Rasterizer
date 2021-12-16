@@ -32,8 +32,6 @@ int wmain(int argc, wchar_t* argv[])
 
 	TriangleMesh mesh{ std::move(positions), {}, {}, std::move(indices) };
 	Material mat{ hwRenderer.GetDevice(), L"./Resources/HardwareShader/VS_PosNormUV.hlsl", nullptr, nullptr, nullptr, L"Resources/HardwareShader/PS_LambertDiffuse.hlsl" };
-	mat.SetConstantBufferCount(EShaderType::Vertex, 1);
-	mat.InitConstantBuffer<HelperStruct::CameraVertexMatrices>(hwRenderer.GetDevice(), EShaderType::Vertex, 0);
 	mesh.SetMaterial(hwRenderer.GetDevice(), &mat);
 
 	MSG msg;

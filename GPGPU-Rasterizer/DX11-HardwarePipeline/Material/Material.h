@@ -17,12 +17,11 @@ public:
 	Material& operator=(const Material&) = delete;
 	Material& operator=(Material&&) noexcept = delete;
 
-	template<typename TARGET_TYPE>
-	void InitConstantBuffer(ID3D11Device* pdevice, EShaderType type, UINT idx);
+	template<typename SHADER_TYPE>
+	void InitConstantBuffers(ID3D11Device* pdevice, Shader<SHADER_TYPE>* pshader, EShaderType type);
 	template<typename TARGET_TYPE, typename... ARG_TYPE>
 	void SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, EShaderType type, UINT idx, ARG_TYPE&&... args);
 
-	void SetConstantBufferCount(EShaderType type, UINT newCount);
 	void SetShaders(ID3D11DeviceContext* pdeviceContext) const;
 
 	ID3D11InputLayout* GetInputLayout() const { return m_InputLayout; }
@@ -46,22 +45,46 @@ private:
 	void SetShaderParameters(EShaderType shaderType, ID3D11DeviceContext* pdeviceContext) const;
 };
 
-template<typename TARGET_TYPE>
-void Material::InitConstantBuffer(ID3D11Device* pdevice, EShaderType type, UINT idx)
+template<typename SHADER_TYPE>
+void Material::InitConstantBuffers(ID3D11Device* pdevice, Shader<SHADER_TYPE>* pshader, EShaderType type)
 {
-	assert(m_ShaderConstantBuffers[type].size() > idx);
+	if (!pshader)
+		return;
 
-	D3D11_BUFFER_DESC bufferDesc{};
-	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	bufferDesc.ByteWidth = sizeof(TARGET_TYPE);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	bufferDesc.MiscFlags = 0;
-	bufferDesc.StructureByteStride = 0;
+	ID3D11ShaderReflection* pReflector;
+	ID3DBlob* shaderBlob{ pshader->GetShaderBlob() };
+	HRESULT res{ D3DReflect(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), IID_ID3D11ShaderReflection, reinterpret_cast<void**>(&pReflector)) };
 
-	const HRESULT res{ pdevice->CreateBuffer(&bufferDesc, nullptr, &m_ShaderConstantBuffers[type][idx]) };
 	if (FAILED(res))
-		res;
+		return;
+
+	D3D11_SHADER_DESC shaderDesc;
+	pReflector->GetDesc(&shaderDesc);
+
+	if (shaderDesc.ConstantBuffers == 0)
+		return;
+
+	m_ShaderConstantBuffers[type].resize(shaderDesc.ConstantBuffers);
+
+	for (UINT idx{}; idx < shaderDesc.ConstantBuffers; ++idx)
+	{
+		ID3D11ShaderReflectionConstantBuffer* psrConstantBuffer{ pReflector->GetConstantBufferByIndex(idx) };
+		D3D11_SHADER_BUFFER_DESC cbDesc;
+		if (!psrConstantBuffer || FAILED(psrConstantBuffer->GetDesc(&cbDesc)))
+			continue;
+
+		D3D11_BUFFER_DESC bufferDesc{};
+		bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		bufferDesc.ByteWidth = cbDesc.Size;
+		bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = 0;
+
+		res = pdevice->CreateBuffer(&bufferDesc, nullptr, &m_ShaderConstantBuffers[type][idx]);
+		if (FAILED(res))
+			res;
+	}
 }
 
 template<typename TARGET_TYPE, typename... ARG_TYPE>
@@ -73,12 +96,10 @@ void Material::SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, EShaderTyp
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
-	// Lock the constant buffer so it can be written to.
 	HRESULT res{ pdeviceContext->Map(pbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource) };
 	if (FAILED(res))
 		return;
 
-	// Get a pointer to the data in the constant buffer.
 	TARGET_TYPE* dataPtr{ static_cast<TARGET_TYPE*>(mappedResource.pData) };
 	*dataPtr = TARGET_TYPE{ std::forward<ARG_TYPE>(args)... };
 
