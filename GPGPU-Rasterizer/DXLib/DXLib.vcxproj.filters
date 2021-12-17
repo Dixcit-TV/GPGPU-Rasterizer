@@ -8,6 +8,7 @@
     <ClInclude Include="Render\Shader\Shader.h" />
     <ClInclude Include="Common\Helpers.h" />
     <ClInclude Include="Common\Structs.h" />
+    <ClInclude Include="Common\ObjReader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -16,5 +17,6 @@
     <ClCompile Include="Camera\Camera.cpp" />
     <ClCompile Include="Common\Helpers.cpp" />
     <ClCompile Include="Common\Structs.cpp" />
+    <ClCompile Include="Common\ObjReader.cpp" />
   </ItemGroup>
 </Project>

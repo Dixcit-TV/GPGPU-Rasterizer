@@ -14,6 +14,8 @@ public:
 	DirectX::XMFLOAT4X4 GetViewProjection() const;
 	DirectX::XMFLOAT4X4 GetViewProjectionInverse() const;
 
+	void Update();
+
 private:
 	DirectX::XMFLOAT4X4 m_ViewMatrix;
 	DirectX::XMFLOAT4X4 m_ProjectionMatrix;

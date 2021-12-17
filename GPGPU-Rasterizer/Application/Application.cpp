@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Camera/Camera.h"
+#include "Common/ObjReader.h"
 #include "Common/Structs.h"
 #include "Mesh/TriangleMesh.h"
 #include "Material/Material.h"
@@ -22,15 +23,22 @@ int wmain(int argc, wchar_t* argv[])
 
 	hwRenderer.Initialize(wnd);
 
-	std::vector positions{
-		DirectX::XMFLOAT3{0.f, 20.f, 0.f}
-		, DirectX::XMFLOAT3{20.f, -20.f, 0.f}
-		, DirectX::XMFLOAT3{-20.f, -20.f, 0.f}
-	};
+	std::vector<DirectX::XMFLOAT3> positions{};
+	std::vector<DirectX::XMFLOAT3> normals{};
+	std::vector<DirectX::XMFLOAT2> uvs{};
+	std::vector<uint32_t> indices;
 
-	std::vector<uint32_t> indices{ 0, 1, 2 };
+	//std::vector positions{
+	//DirectX::XMFLOAT3{0.f, 5.f, 0.f}
+	//, DirectX::XMFLOAT3{5.f, -5.f, 0.f}
+	//, DirectX::XMFLOAT3{-5.f, -5.f, 0.f}
+	//};
 
-	TriangleMesh mesh{ std::move(positions), {}, {}, std::move(indices) };
+	//std::vector<uint32_t> indices{ 0, 1, 2 };
+
+	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
+
+	TriangleMesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	Material mat{ hwRenderer.GetDevice(), L"./Resources/HardwareShader/VS_PosNormUV.hlsl", nullptr, nullptr, nullptr, L"Resources/HardwareShader/PS_LambertDiffuse.hlsl" };
 	mesh.SetMaterial(hwRenderer.GetDevice(), &mat);
 
@@ -46,6 +54,7 @@ int wmain(int argc, wchar_t* argv[])
 				break;
 		}
 
+		camera.Update();
 		hwRenderer.ClearBuffers();
 		hwRenderer.DrawIndexed(&camera, &mesh);
 		hwRenderer.Present();

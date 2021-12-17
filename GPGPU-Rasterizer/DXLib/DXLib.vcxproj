@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClInclude Include="Camera\Camera.h" />
     <ClInclude Include="Common\Helpers.h" />
+    <ClInclude Include="Common\ObjReader.h" />
     <ClInclude Include="Render\DXRenderer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Render\Shader\Shader.h" />
@@ -174,6 +175,7 @@
   <ItemGroup>
     <ClCompile Include="Camera\Camera.cpp" />
     <ClCompile Include="Common\Helpers.cpp" />
+    <ClCompile Include="Common\ObjReader.cpp" />
     <ClCompile Include="Render\DXRenderer.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

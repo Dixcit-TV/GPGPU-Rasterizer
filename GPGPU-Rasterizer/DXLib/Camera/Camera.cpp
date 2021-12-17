@@ -61,3 +61,49 @@ DirectX::XMFLOAT4X4 Camera::GetViewProjectionInverse() const
 
 	return res;
 }
+
+void Camera::Update()
+{
+	DirectX::XMFLOAT3 offset{};
+	const float linearVelocity{ 0.0001f };
+	const float mouseSensitivity{ 0.000001f };
+
+	float roll{ 0.f }, pitch{ 0.f };
+	bool updated{ false };
+
+	BYTE* keyboardState{new BYTE[256]};
+	[[maybe_unused]] BOOL res{ GetKeyboardState(keyboardState) };
+
+	DirectX::XMFLOAT2 rotateDir{ (keyboardState[VK_LEFT] & 0xF0) * -1.f + (keyboardState[VK_RIGHT] & 0xF0) * 1.f
+						, (keyboardState[VK_DOWN] & 0xF0) * -1.f + (keyboardState[VK_UP] & 0xF0) * 1.f };
+
+	if (abs(rotateDir.x) > FLT_EPSILON || abs(rotateDir.y) > FLT_EPSILON)
+	{
+		updated = true;
+		roll += rotateDir.y;
+		pitch -= rotateDir.x;
+	}
+
+	DirectX::XMFLOAT2 movDir{ (keyboardState['A'] & 0xF0) * 1.f + (keyboardState['D'] & 0xF0) * -1.f
+							, (keyboardState['S'] & 0xF0) * -1.f + (keyboardState['W'] & 0xF0) * 1.f };
+
+	if (abs(movDir.x) > FLT_EPSILON || abs(movDir.y) > FLT_EPSILON)
+	{
+		updated = true;
+		offset.x += movDir.x * linearVelocity;
+		offset.z += movDir.y * -linearVelocity;
+	}
+
+	if (updated)
+	{
+		DirectX::XMMATRIX xmRotation{ DirectX::XMMatrixRotationRollPitchYaw(roll * mouseSensitivity, pitch * mouseSensitivity, 0.f) };
+		DirectX::XMMATRIX xmTranslation{ DirectX::XMMatrixTranslationFromVector(XMLoadFloat3(&offset)) };
+
+		const DirectX::XMMATRIX viewMatrix{ XMLoadFloat4x4(&m_ViewMatrix) * xmTranslation * xmRotation };
+
+		const DirectX::XMMATRIX viewInvMatrix{ XMMatrixInverse(nullptr, viewMatrix) };
+
+		XMStoreFloat4x4(&m_ViewMatrix, viewMatrix);
+		XMStoreFloat4x4(&m_ViewInvMatrix, viewInvMatrix);
+	}
+}

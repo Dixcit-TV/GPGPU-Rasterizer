@@ -1,7 +1,6 @@
 cbuffer ObjectMatrices
 {
-	float4x4 worldViewProj;
-	float4x4 world;
+	float4x4 worldViewProj; 
 }
 
 struct Vertex_IN
@@ -13,5 +12,5 @@ struct Vertex_IN
 
 float4 main(Vertex_IN input ) : SV_POSITION
 {
-	return mul(float4(input.position, 1.f), worldViewProj);
+	return mul(worldViewProj, float4(input.position, 1.f));
 }

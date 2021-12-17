@@ -54,20 +54,20 @@ void TriangleMesh::BuildVertexBuffer(ID3D11Device* pdevice)
 	const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputDescs{ m_pMaterial->GetInputLayoutDesc() };
 	char* pdata{ static_cast<char*>(malloc(vBufferDesc.ByteWidth)) };
 
-	for (UINT idx{}; idx < vCount; ++idx)
+
+	for (const D3D11_INPUT_ELEMENT_DESC& desc : inputDescs)
 	{
-		const UINT vOffset{ vStride * idx };
-		for (const D3D11_INPUT_ELEMENT_DESC& desc : inputDescs)
+		for (UINT idx{}; idx < vCount; ++idx)
 		{
-			const UINT inputOffset{ vOffset + desc.AlignedByteOffset };
+			const UINT memOffset{ vStride * idx + desc.AlignedByteOffset };
 			if (strcmp(desc.SemanticName, "POSITION") == 0)
-				memcpy(pdata + inputOffset, &m_VertexPositions[idx], sizeof m_VertexPositions[idx]);
+				memcpy(pdata + memOffset, &m_VertexPositions[idx], sizeof m_VertexPositions[idx]);
 			else if (strcmp(desc.SemanticName, "NORMAL") == 0)
-				memcpy(pdata + inputOffset, &m_VertexNorms[idx], sizeof m_VertexNorms[idx]);
+				memcpy(pdata + memOffset, &m_VertexNorms[idx], sizeof m_VertexNorms[idx]);
 			else if (strcmp(desc.SemanticName, "TANGENT") == 0)
-				memcpy(pdata + inputOffset, &m_VertexTangents[idx], sizeof m_VertexTangents[idx]);
+				memcpy(pdata + memOffset, &m_VertexTangents[idx], sizeof m_VertexTangents[idx]);
 			else if (strcmp(desc.SemanticName, "TEXTCOORD") == 0)
-				memcpy(pdata + inputOffset, &m_VertexUvs[idx], sizeof m_VertexUvs[idx]);
+				memcpy(pdata + memOffset, &m_VertexUvs[idx], sizeof m_VertexUvs[idx]);
 		}
 	}
 
@@ -113,7 +113,7 @@ void TriangleMesh::SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceCo
 	DirectX::XMFLOAT4X4 worldViewProj{};
 
 	XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
-	XMStoreFloat4x4(&worldViewProj, DirectX::XMMatrixIdentity() * XMLoadFloat4x4(&viewProj));
-	m_pMaterial->SetConstantBuffer<HelperStruct::CameraVertexMatrices>(pdeviceContext, EShaderType::Vertex, 0u, worldViewProj, world);
+	XMStoreFloat4x4(&worldViewProj, XMLoadFloat4x4(&viewProj));
+	m_pMaterial->SetConstantBuffer<HelperStruct::CameraVertexMatrix>(pdeviceContext, EShaderType::Vertex, 0u, worldViewProj);
 	m_pMaterial->SetShaders(pdeviceContext);
 }
