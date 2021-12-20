@@ -5,6 +5,7 @@ VisualStudioVersion = 16.0.31112.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Application", "Application\Application.vcxproj", "{273FB08C-B9C2-4A6F-B76B-BDEB5EE5D063}"
 	ProjectSection(ProjectDependencies) = postProject
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302} = {00D4EF71-A057-41A1-8638-36CDEF6A9302}
 		{7C7E6DAB-B8AF-422F-8495-C43767EDA3F9} = {7C7E6DAB-B8AF-422F-8495-C43767EDA3F9}
 	EndProjectSection
 EndProject
@@ -14,6 +15,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DX11-HardwarePipeline", "DX
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DXLib", "DXLib\DXLib.vcxproj", "{C21619A6-9D79-49CE-ADB1-40FC6DC3FD26}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compu-Raster", "Compu-Raster\Compu-Raster.vcxproj", "{00D4EF71-A057-41A1-8638-36CDEF6A9302}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C21619A6-9D79-49CE-ADB1-40FC6DC3FD26} = {C21619A6-9D79-49CE-ADB1-40FC6DC3FD26}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +53,14 @@ Global
 		{C21619A6-9D79-49CE-ADB1-40FC6DC3FD26}.Release|x64.Build.0 = Release|x64
 		{C21619A6-9D79-49CE-ADB1-40FC6DC3FD26}.Release|x86.ActiveCfg = Release|Win32
 		{C21619A6-9D79-49CE-ADB1-40FC6DC3FD26}.Release|x86.Build.0 = Release|Win32
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302}.Debug|x64.ActiveCfg = Debug|x64
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302}.Debug|x64.Build.0 = Debug|x64
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302}.Debug|x86.ActiveCfg = Debug|Win32
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302}.Debug|x86.Build.0 = Debug|Win32
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302}.Release|x64.ActiveCfg = Release|x64
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302}.Release|x64.Build.0 = Release|x64
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302}.Release|x86.ActiveCfg = Release|Win32
+		{00D4EF71-A057-41A1-8638-36CDEF6A9302}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

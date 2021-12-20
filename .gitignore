@@ -18,3 +18,6 @@
 /GPGPU-Rasterizer/DX11-HardwarePipeline/Win32
 /GPGPU-Rasterizer/DX11-HardwarePipeline/Release
 /GPGPU-Rasterizer/DX11-HardwarePipeline/Debug
+/GPGPU-Rasterizer/Compu-Raster/Debug
+/GPGPU-Rasterizer/Compu-Raster/Release
+/GPGPU-Rasterizer/Compu-Raster/x64
