@@ -12,6 +12,10 @@
 #include <sstream>
 #include <iostream>
 
+#if defined(DEBUG) | defined(_DEBUG)
+	#include <vld.h>
+#endif 
+
 // add headers that you want to pre-compile here
 #include <dxgi.h>
 #pragma comment(lib, "dxgi.lib")

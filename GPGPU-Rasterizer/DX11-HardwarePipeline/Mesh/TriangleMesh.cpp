@@ -52,8 +52,7 @@ void TriangleMesh::BuildVertexBuffer(ID3D11Device* pdevice)
 	vBufferDesc.StructureByteStride = 0;
 
 	const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputDescs{ m_pMaterial->GetInputLayoutDesc() };
-	char* pdata{ static_cast<char*>(malloc(vBufferDesc.ByteWidth)) };
-
+	char* pdata{ new char[vBufferDesc.ByteWidth] };
 
 	for (const D3D11_INPUT_ELEMENT_DESC& desc : inputDescs)
 	{
@@ -77,6 +76,8 @@ void TriangleMesh::BuildVertexBuffer(ID3D11Device* pdevice)
 	HRESULT res{ pdevice->CreateBuffer(&vBufferDesc, &vResData, &m_VertexBuffer) };
 	if (FAILED(res))
 		return;
+
+	delete[] pdata;
 }
 
 void TriangleMesh::BuildIndexBuffer(ID3D11Device* pdevice)
@@ -114,6 +115,7 @@ void TriangleMesh::SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceCo
 
 	XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
 	XMStoreFloat4x4(&worldViewProj, XMLoadFloat4x4(&viewProj));
-	m_pMaterial->SetConstantBuffer<HelperStruct::CameraVertexMatrix>(pdeviceContext, EShaderType::Vertex, 0u, worldViewProj);
+	m_pMaterial->SetConstantBuffer<HelperStruct::CameraObjectMatrices>(pdeviceContext, "ObjectMatrices", worldViewProj, world);
+	m_pMaterial->SetConstantBuffer<HelperStruct::LightInfoBuffer>(pdeviceContext, "LightInfo", DirectX::XMFLOAT3{ 0.f, -1.f, 0.f }, 2.f);
 	m_pMaterial->SetShaders(pdeviceContext);
 }

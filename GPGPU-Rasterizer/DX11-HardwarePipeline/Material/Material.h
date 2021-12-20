@@ -6,6 +6,12 @@
 
 class HardwareRenderer;
 
+struct ConstantBufferBinding
+{
+	std::string name;
+	UINT slotID;
+};
+
 class Material
 {
 public:
@@ -20,7 +26,7 @@ public:
 	template<typename SHADER_TYPE>
 	void InitConstantBuffers(ID3D11Device* pdevice, Shader<SHADER_TYPE>* pshader, EShaderType type);
 	template<typename TARGET_TYPE, typename... ARG_TYPE>
-	void SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, EShaderType type, UINT idx, ARG_TYPE&&... args);
+	void SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, const std::string& bufferName, ARG_TYPE&&... args);
 
 	void SetShaders(ID3D11DeviceContext* pdeviceContext) const;
 
@@ -29,7 +35,8 @@ public:
 	UINT GetInputLayoutSize() const { return m_InputLayoutSize; }
 
 private:
-	std::map<EShaderType, std::vector<ID3D11Buffer*>> m_ShaderConstantBuffers;
+	std::map<EShaderType, std::vector<ConstantBufferBinding>> m_ShaderCBBinding;
+	std::map<std::string, ID3D11Buffer*> m_ShaderCBs;
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_InputLayoutDescs;
 	ID3D11InputLayout* m_InputLayout;
 
@@ -42,7 +49,7 @@ private:
 	UINT m_InputLayoutSize;
 
 	void GenerateInputLayout(ID3D11Device* pdevice);
-	void SetShaderParameters(EShaderType shaderType, ID3D11DeviceContext* pdeviceContext) const;
+	void SetShaderParameters(EShaderType shaderType, const std::vector<ConstantBufferBinding>& bindings, ID3D11DeviceContext* pdeviceContext) const;
 };
 
 template<typename SHADER_TYPE>
@@ -61,16 +68,17 @@ void Material::InitConstantBuffers(ID3D11Device* pdevice, Shader<SHADER_TYPE>* p
 	D3D11_SHADER_DESC shaderDesc;
 	pReflector->GetDesc(&shaderDesc);
 
-	if (shaderDesc.ConstantBuffers == 0)
-		return;
-
-	m_ShaderConstantBuffers[type].resize(shaderDesc.ConstantBuffers);
-
 	for (UINT idx{}; idx < shaderDesc.ConstantBuffers; ++idx)
 	{
 		ID3D11ShaderReflectionConstantBuffer* psrConstantBuffer{ pReflector->GetConstantBufferByIndex(idx) };
-		D3D11_SHADER_BUFFER_DESC cbDesc;
-		if (!psrConstantBuffer || FAILED(psrConstantBuffer->GetDesc(&cbDesc)))
+		D3D11_SHADER_BUFFER_DESC cbDesc{};
+		if (!psrConstantBuffer 
+			|| FAILED(psrConstantBuffer->GetDesc(&cbDesc)))
+			continue;
+
+		m_ShaderCBBinding[type].push_back(ConstantBufferBinding{ cbDesc.Name, idx });
+
+		if (m_ShaderCBs[cbDesc.Name])
 			continue;
 
 		D3D11_BUFFER_DESC bufferDesc{};
@@ -81,18 +89,18 @@ void Material::InitConstantBuffers(ID3D11Device* pdevice, Shader<SHADER_TYPE>* p
 		bufferDesc.MiscFlags = 0;
 		bufferDesc.StructureByteStride = 0;
 
-		res = pdevice->CreateBuffer(&bufferDesc, nullptr, &m_ShaderConstantBuffers[type][idx]);
+		res = pdevice->CreateBuffer(&bufferDesc, nullptr, &m_ShaderCBs[cbDesc.Name]);
 		if (FAILED(res))
 			res;
 	}
 }
 
 template<typename TARGET_TYPE, typename... ARG_TYPE>
-void Material::SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, EShaderType type, UINT idx, ARG_TYPE&&... args)
+void Material::SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, const std::string& bufferName, ARG_TYPE&&... args)
 {
-	assert(m_ShaderConstantBuffers[type].size() > idx && m_ShaderConstantBuffers[type][idx]);
-
-	ID3D11Buffer* pbuffer{ m_ShaderConstantBuffers[type][idx] };
+	ID3D11Buffer* pbuffer{ m_ShaderCBs.find(bufferName) != m_ShaderCBs.cend() ? m_ShaderCBs[bufferName] : nullptr };
+	if (!pbuffer)
+		return;
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 

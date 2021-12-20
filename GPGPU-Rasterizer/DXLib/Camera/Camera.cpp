@@ -71,7 +71,7 @@ void Camera::Update()
 	float roll{ 0.f }, pitch{ 0.f };
 	bool updated{ false };
 
-	BYTE* keyboardState{new BYTE[256]};
+	BYTE keyboardState[256];
 	[[maybe_unused]] BOOL res{ GetKeyboardState(keyboardState) };
 
 	DirectX::XMFLOAT2 rotateDir{ (keyboardState[VK_LEFT] & 0xF0) * -1.f + (keyboardState[VK_RIGHT] & 0xF0) * 1.f

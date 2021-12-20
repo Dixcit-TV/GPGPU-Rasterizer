@@ -2,7 +2,8 @@
 #include "Material.h"
 
 Material::Material(ID3D11Device* pdevice, const wchar_t* vsPath, const wchar_t* hsPath, const wchar_t* dsPath, const wchar_t* gsPath, const wchar_t* psPath)
-	: m_ShaderConstantBuffers{}
+	: m_ShaderCBBinding{}
+	, m_ShaderCBs{}
 	, m_InputLayoutDescs{}
 	, m_InputLayout{ nullptr }
 	, m_pVertexShader{ vsPath != nullptr ? new Shader<ID3D11VertexShader>(pdevice, vsPath) : nullptr }
@@ -22,10 +23,9 @@ Material::Material(ID3D11Device* pdevice, const wchar_t* vsPath, const wchar_t* 
 
 Material::~Material()
 {
-	for (auto& bufferPairs : m_ShaderConstantBuffers)
+	for (auto& bufferPairs : m_ShaderCBs)
 	{
-		for (ID3D11Buffer*& pbuffer : bufferPairs.second)
-			Helpers::SafeRelease(pbuffer);
+		Helpers::SafeRelease(bufferPairs.second);
 	}
 
 	Helpers::SafeRelease(m_InputLayout);
@@ -38,9 +38,9 @@ Material::~Material()
 
 void Material::SetShaders(ID3D11DeviceContext* pdeviceContext) const
 {
-	for (const auto mapPair : m_ShaderConstantBuffers)
+	for (const auto& mapPair : m_ShaderCBBinding)
 	{
-		SetShaderParameters(mapPair.first, pdeviceContext);
+		SetShaderParameters(mapPair.first, mapPair.second, pdeviceContext);
 	}
 
 	pdeviceContext->IASetInputLayout(m_InputLayout);
@@ -51,30 +51,29 @@ void Material::SetShaders(ID3D11DeviceContext* pdeviceContext) const
 	pdeviceContext->PSSetShader(m_pPixelShader ? m_pPixelShader->GetShader() : nullptr, nullptr, 0);
 }
 
-void Material::SetShaderParameters(EShaderType shaderType, ID3D11DeviceContext* pdeviceContext) const
+void Material::SetShaderParameters(EShaderType shaderType, const std::vector<ConstantBufferBinding>& bindings, ID3D11DeviceContext* pdeviceContext) const
 {
-	const std::vector<ID3D11Buffer*>& buffers{ m_ShaderConstantBuffers.at(shaderType) };
-	if (std::empty(buffers))
-		return;
-
-	switch(shaderType)
+	for (const ConstantBufferBinding& binding : bindings)
 	{
-	case EShaderType::Vertex:
-		pdeviceContext->VSSetConstantBuffers(0, static_cast<UINT>(std::size(buffers)), std::data(buffers));
-		break;
-	case EShaderType::Hull:
-		pdeviceContext->HSSetConstantBuffers(0, static_cast<UINT>(std::size(buffers)), std::data(buffers));
-		break;
-	case EShaderType::Domain:
-		pdeviceContext->DSSetConstantBuffers(0, static_cast<UINT>(std::size(buffers)), std::data(buffers));
-		break;
-	case EShaderType::Geometry:
-		pdeviceContext->GSSetConstantBuffers(0, static_cast<UINT>(std::size(buffers)), std::data(buffers));
-		break;
-	case EShaderType::Pixel:
-		pdeviceContext->PSSetConstantBuffers(0, static_cast<UINT>(std::size(buffers)), std::data(buffers));
-		break;
-	default: break;
+		switch (shaderType)
+		{
+		case EShaderType::Vertex:
+			pdeviceContext->VSSetConstantBuffers(binding.slotID, 1, &m_ShaderCBs.at(binding.name));
+			break;
+		case EShaderType::Hull:
+			pdeviceContext->HSSetConstantBuffers(binding.slotID, 1, &m_ShaderCBs.at(binding.name));
+			break;
+		case EShaderType::Domain:
+			pdeviceContext->DSSetConstantBuffers(binding.slotID, 1, &m_ShaderCBs.at(binding.name));
+			break;
+		case EShaderType::Geometry:
+			pdeviceContext->GSSetConstantBuffers(binding.slotID, 1, &m_ShaderCBs.at(binding.name));
+			break;
+		case EShaderType::Pixel:
+			pdeviceContext->PSSetConstantBuffers(binding.slotID, 1, &m_ShaderCBs.at(binding.name));
+			break;
+		default: break;
+		}
 	}
 }
 
