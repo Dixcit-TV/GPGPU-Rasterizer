@@ -11,7 +11,7 @@ enum class EShaderType
 template<typename SHADER_TYPE>
 class Shader
 {
-	using ShaderCreationFnc = HRESULT(ID3D11Device::*)(const void*, SIZE_T, ID3D11ClassLinkage*, SHADER_TYPE**);
+	using ShaderCreationFnc = HRESULT(__stdcall ID3D11Device::*)(const void*, SIZE_T, ID3D11ClassLinkage*, SHADER_TYPE**);
 public:
 	explicit Shader(ID3D11Device* pdevice, const wchar_t* filePath, const char* entryPoint = "main");
 	~Shader();

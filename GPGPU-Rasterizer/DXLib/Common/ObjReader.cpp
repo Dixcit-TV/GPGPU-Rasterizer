@@ -76,8 +76,8 @@ void ObjReader::LoadModel(const std::wstring& objPath, std::vector<DirectX::XMFL
 			int64_t vIdx{ GetVertexIdx(position, positions) };
 
 			if (vIdx == -1
-				|| XMVector3NotEqual(XMLoadFloat3(&normal), XMLoadFloat3(&normals[vIdx]))
-				|| XMVector2NotEqual(XMLoadFloat2(&uv), XMLoadFloat2(&uvs[vIdx])))
+				|| XMVector3NotEqual(XMLoadFloat3(&normal), XMLoadFloat3(&normals[static_cast<uint32_t>(vIdx)]))
+				|| XMVector2NotEqual(XMLoadFloat2(&uv), XMLoadFloat2(&uvs[static_cast<uint32_t>(vIdx)])))
 			{
 				vIdx = positions.size();
 				positions.push_back(position);
