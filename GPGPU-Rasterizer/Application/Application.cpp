@@ -1,10 +1,8 @@
 #include "pch.h"
-
-#include <chrono>
 #include <vector>
 #include "Camera/Camera.h"
 #include "Common/ObjReader.h"
-#include "Common/Structs.h"
+#include "Managers/TimeSettings.h"
 #include "Mesh/TriangleMesh.h"
 #include "Material/Material.h"
 #include "Mesh/Mesh.h"
@@ -16,10 +14,10 @@
 //#define HARDWARE_RENDER
 #define CUSTOM_RENDER
 
-
-
 void mainDXRaster(const Window& window, Camera& camera);
 void mainCompuRaster(const Window& window, Camera& camera);
+
+LRESULT WndProc_Implementation(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int wmain(int argc, wchar_t* argv[])
 {
@@ -28,7 +26,7 @@ int wmain(int argc, wchar_t* argv[])
 
 	wchar_t windowName[]{ TEXT("GPU Rasterizer - Dixcit") };
 	Window wnd{ windowName, 1920u, 1080u };
-	wnd.Init();
+	wnd.Init(&WndProc_Implementation);
 	Camera camera{ DirectX::XMFLOAT3{0.f, 0.f, -100.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
 
 #if defined(HARDWARE_RENDER)
@@ -40,6 +38,8 @@ int wmain(int argc, wchar_t* argv[])
 
 void mainDXRaster(const Window& window, Camera& camera)
 {
+	TimeSettings& timeSettings = TimeSettings::GetInstance();
+
 	HardwareRenderer hwRenderer{};
 	hwRenderer.Initialize(window);
 
@@ -64,8 +64,6 @@ void mainDXRaster(const Window& window, Camera& camera)
 
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
-
-	std::chrono::high_resolution_clock::time_point t1{ std::chrono::high_resolution_clock::now() };
 	while (msg.message != WM_QUIT)
 	{
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -76,21 +74,21 @@ void mainDXRaster(const Window& window, Camera& camera)
 				break;
 		}
 
-		std::chrono::high_resolution_clock::time_point t2{ std::chrono::high_resolution_clock::now() };
+		timeSettings.Update();
 
-		// Calculate elapsed time
-		float elapsedSeconds = std::chrono::duration<float>(t2 - t1).count();
-		t1 = t2;
-
-		camera.Update(elapsedSeconds);
+		camera.Update(timeSettings.GetElapsed());
 		hwRenderer.ClearBuffers();
 		hwRenderer.DrawIndexed(&camera, &mesh);
 		hwRenderer.Present();
+
+		timeSettings.TrySleep();
 	}
 }
 
 void mainCompuRaster(const Window& window, Camera& camera)
 {
+	TimeSettings& timeSettings = TimeSettings::GetInstance();
+
 	CompuRaster::CompuRenderer dcRenderer{};
 	dcRenderer.Initialize(window);
 
@@ -117,7 +115,6 @@ void mainCompuRaster(const Window& window, Camera& camera)
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
 
-	std::chrono::high_resolution_clock::time_point t1{ std::chrono::high_resolution_clock::now() };
 	while (msg.message != WM_QUIT)
 	{
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -128,15 +125,33 @@ void mainCompuRaster(const Window& window, Camera& camera)
 				break;
 		}
 
-		std::chrono::high_resolution_clock::time_point t2{ std::chrono::high_resolution_clock::now() };
+		timeSettings.Update();
 
-		// Calculate elapsed time
-		float elapsedSeconds = std::chrono::duration<float>(t2 - t1).count();
-		t1 = t2;
-
-		camera.Update(elapsedSeconds);
+		camera.Update(timeSettings.GetElapsed());
 		dcRenderer.ClearBuffers();
 		dcRenderer.Draw(&camera, &mesh);
 		dcRenderer.Present();
+
+		timeSettings.TrySleep();
 	}
+}
+
+LRESULT WndProc_Implementation(HWND, UINT msg, WPARAM wParam, LPARAM)
+{
+	switch (msg)
+	{
+	case WM_KEYUP:
+		{
+			//NextScene
+			if (wParam == VK_F1)
+			{
+				std::wcout << L"FPS: " << TimeSettings::GetInstance().GetFPS() << "\n";
+				return 0;
+			}
+		}
+		break;
+	default: break;
+	}
+
+	return -1;
 }

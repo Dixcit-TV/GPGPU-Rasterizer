@@ -9,6 +9,7 @@
     <ClInclude Include="Common\Helpers.h" />
     <ClInclude Include="Common\Structs.h" />
     <ClInclude Include="Common\ObjReader.h" />
+    <ClInclude Include="Managers\TimeSettings.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -18,5 +19,6 @@
     <ClCompile Include="Common\Helpers.cpp" />
     <ClCompile Include="Common\Structs.cpp" />
     <ClCompile Include="Common\ObjReader.cpp" />
+    <ClCompile Include="Managers\TimeSettings.cpp" />
   </ItemGroup>
 </Project>

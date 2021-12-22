@@ -82,8 +82,10 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         default:
             {
                 Window* pThisWindow = reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
-                if (pThisWindow && pThisWindow->m_WndProcImpl)
-                    return pThisWindow->m_WndProcImpl(hwnd, msg, wParam, lParam);
+                if (pThisWindow 
+                    && pThisWindow->m_WndProcImpl 
+                    && pThisWindow->m_WndProcImpl(hwnd, msg, wParam, lParam) == 0)
+                    return 0;
             }   
             break;
     }
