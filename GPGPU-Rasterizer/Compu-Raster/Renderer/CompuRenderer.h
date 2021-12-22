@@ -1,10 +1,13 @@
 #pragma once
 #include <DirectXColors.h>
 
+class Camera;
 class Window;
 
 namespace CompuRaster
 {
+	class Mesh;
+
 	class CompuRenderer
 	{
 	public:
@@ -26,7 +29,12 @@ namespace CompuRaster
 		{
 			m_pDxDeviceContext->ClearUnorderedAccessViewFloat(m_pRenderTargetUAV, reinterpret_cast<const float*>(&DirectX::Colors::Black));
 			m_pDxDeviceContext->ClearUnorderedAccessViewFloat(m_pDepthUAV, reinterpret_cast<const float*>(&DirectX::Colors::White));
+
+			ID3D11UnorderedAccessView* uavs[]{ m_pRenderTargetUAV, m_pDepthUAV };
+			m_pDxDeviceContext->CSSetUnorderedAccessViews(0, 2, uavs, nullptr);
 		}
+
+		void Draw(Camera* pcamera, Mesh* pmesh) const;
 
 	private:
 		ID3D11Device* m_pDxDevice;

@@ -62,11 +62,11 @@ DirectX::XMFLOAT4X4 Camera::GetViewProjectionInverse() const
 	return res;
 }
 
-void Camera::Update()
+void Camera::Update(float delatTime)
 {
 	DirectX::XMFLOAT3 offset{};
-	const float linearVelocity{ 0.0001f };
-	const float mouseSensitivity{ 0.000001f };
+	const float linearVelocity{ 0.5f };
+	const float mouseSensitivity{ 0.01f };
 
 	float roll{ 0.f }, pitch{ 0.f };
 	bool updated{ false };
@@ -96,6 +96,13 @@ void Camera::Update()
 
 	if (updated)
 	{
+		roll *= delatTime;
+		pitch *= delatTime;
+
+		offset.x *= delatTime;
+		offset.y *= delatTime;
+		offset.z *= delatTime;
+
 		DirectX::XMMATRIX xmRotation{ DirectX::XMMatrixRotationRollPitchYaw(roll * mouseSensitivity, pitch * mouseSensitivity, 0.f) };
 		DirectX::XMMATRIX xmTranslation{ DirectX::XMMatrixTranslationFromVector(XMLoadFloat3(&offset)) };
 

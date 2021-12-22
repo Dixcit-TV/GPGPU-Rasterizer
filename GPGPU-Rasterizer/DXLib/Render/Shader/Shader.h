@@ -1,5 +1,6 @@
 #pragma once
 #include <sstream>
+#include <iostream>
 #include <string>
 #include "../../Common/Helpers.h"
 

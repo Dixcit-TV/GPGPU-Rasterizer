@@ -14,7 +14,7 @@ public:
 	DirectX::XMFLOAT4X4 GetViewProjection() const;
 	DirectX::XMFLOAT4X4 GetViewProjectionInverse() const;
 
-	void Update();
+	void Update(float delatTime);
 
 private:
 	DirectX::XMFLOAT4X4 m_ViewMatrix;

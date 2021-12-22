@@ -2,9 +2,9 @@
 #include "CompuRenderer.h"
 
 #include <iostream>
-
 #include "WindowAndViewport/Window.h"
 #include "Common/Helpers.h"
+#include "../Mesh/Mesh.h"
 
 namespace CompuRaster
 {
@@ -143,5 +143,11 @@ namespace CompuRaster
 
 		m_bInitialized = true;
 		return res;
+	}
+
+	void CompuRenderer::Draw(Camera* pcamera, Mesh* pmesh) const
+	{
+		pmesh->SetupDrawInfo(pcamera, m_pDxDeviceContext);
+		m_pDxDeviceContext->Dispatch(48, 48, 1);
 	}
 }
