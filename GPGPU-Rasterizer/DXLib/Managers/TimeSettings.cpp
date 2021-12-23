@@ -18,7 +18,7 @@ void TimeSettings::Update()
 	const float frameInterval{ 1.f };
 	m_ElapsedTime = std::chrono::duration<float>(currentTime - m_LastTimePoint).count();
 	m_LastTimePoint = currentTime;
-	m_ElapsedTime = std::clamp(m_ElapsedTime, 0.f, MAXFRAMETIME);
+	m_ElapsedTime = std::clamp(m_ElapsedTime, 0.f, MAX_FRAME_TIME);
 
 	m_Lag += m_ElapsedTime;
 
@@ -47,9 +47,9 @@ void TimeSettings::Update()
 
 void TimeSettings::TrySleep() const
 {
-	if (USEFIXEDFRAMETIME)
+	if (USE_FIXED_FRAME_TIME)
 	{
-		const auto sleepTime{ m_LastTimePoint + std::chrono::milliseconds(FRAMETIMEMS) - Clock::now() };
+		const auto sleepTime{ m_LastTimePoint + std::chrono::milliseconds(FRAME_TIME_MS) - Clock::now() };
 		std::this_thread::sleep_for(sleepTime);
 	}
 }

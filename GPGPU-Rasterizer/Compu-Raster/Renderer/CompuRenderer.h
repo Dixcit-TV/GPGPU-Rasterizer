@@ -28,7 +28,7 @@ namespace CompuRaster
 		void ClearBuffers() const
 		{
 			m_pDxDeviceContext->ClearUnorderedAccessViewFloat(m_pRenderTargetUAV, reinterpret_cast<const float*>(&DirectX::Colors::Black));
-			m_pDxDeviceContext->ClearUnorderedAccessViewFloat(m_pDepthUAV, reinterpret_cast<const float*>(&DirectX::Colors::White));
+			m_pDxDeviceContext->ClearUnorderedAccessViewUint(m_pDepthUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::White));
 
 			ID3D11UnorderedAccessView* uavs[]{ m_pRenderTargetUAV, m_pDepthUAV };
 			m_pDxDeviceContext->CSSetUnorderedAccessViews(0, 2, uavs, nullptr);

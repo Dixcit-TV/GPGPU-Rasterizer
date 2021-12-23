@@ -166,6 +166,8 @@
     <ClInclude Include="Camera\Camera.h" />
     <ClInclude Include="Common\Helpers.h" />
     <ClInclude Include="Common\ObjReader.h" />
+    <ClInclude Include="Managers\Logger.h" />
+    <ClInclude Include="Managers\Singleton.h" />
     <ClInclude Include="Managers\TimeSettings.h" />
     <ClInclude Include="Render\DXRenderer.h" />
     <ClInclude Include="pch.h" />
@@ -177,6 +179,7 @@
     <ClCompile Include="Camera\Camera.cpp" />
     <ClCompile Include="Common\Helpers.cpp" />
     <ClCompile Include="Common\ObjReader.cpp" />
+    <ClCompile Include="Managers\Logger.cpp" />
     <ClCompile Include="Managers\TimeSettings.cpp" />
     <ClCompile Include="Render\DXRenderer.cpp" />
     <ClCompile Include="pch.cpp">

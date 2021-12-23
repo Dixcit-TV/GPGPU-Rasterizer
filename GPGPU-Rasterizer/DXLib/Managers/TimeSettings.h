@@ -1,16 +1,12 @@
 #pragma once
 #include <chrono>
+#include "Singleton.h"
 
-class TimeSettings final
+class TimeSettings final : public Singleton<TimeSettings>
 {
 public:
-	static TimeSettings& GetInstance()
-	{
-		static TimeSettings instance{};
-		return instance;
-	}
 
-	~TimeSettings() = default;
+	~TimeSettings() override = default;
 	TimeSettings(const TimeSettings & other) = delete;
 	TimeSettings(TimeSettings && other) = delete;
 	TimeSettings& operator=(const TimeSettings & other) = delete;
@@ -24,6 +20,7 @@ public:
 	unsigned int GetFPS() const { return m_FPS; }
 
 private:
+	friend class Singleton<TimeSettings>;
 	explicit TimeSettings();
 
 	using TimePoint = std::chrono::high_resolution_clock::time_point;
@@ -37,9 +34,9 @@ private:
 	unsigned int m_FPS;
 	unsigned int m_FPSCounter;
 
-	const float FIXEDDELTATIME = 0.2f;
-	const float MAXFRAMETIME = 0.1f;
-	const int FRAMETIMEMS = 16;
-	const bool USEFIXEDFRAMETIME = false;
+	const float FIXED_DELTA_TIME = 0.2f;
+	const float MAX_FRAME_TIME = 0.1f;
+	const int FRAME_TIME_MS = 16;
+	const bool USE_FIXED_FRAME_TIME = false;
 };
 

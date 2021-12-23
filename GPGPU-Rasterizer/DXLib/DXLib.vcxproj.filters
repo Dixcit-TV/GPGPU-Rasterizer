@@ -10,6 +10,8 @@
     <ClInclude Include="Common\Structs.h" />
     <ClInclude Include="Common\ObjReader.h" />
     <ClInclude Include="Managers\TimeSettings.h" />
+    <ClInclude Include="Managers\Singleton.h" />
+    <ClInclude Include="Managers\Logger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -20,5 +22,6 @@
     <ClCompile Include="Common\Structs.cpp" />
     <ClCompile Include="Common\ObjReader.cpp" />
     <ClCompile Include="Managers\TimeSettings.cpp" />
+    <ClCompile Include="Managers\Logger.cpp" />
   </ItemGroup>
 </Project>
