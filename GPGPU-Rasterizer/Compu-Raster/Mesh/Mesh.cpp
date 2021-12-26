@@ -2,7 +2,7 @@
 #include "Mesh.h"
 
 #include "Common/Structs.h"
-#include "../Renderer/Pipeline/Material.h"
+#include "../Renderer/Pipeline/NaivePipeline/NaiveMaterial.h"
 #include "Camera/Camera.h"
 
 namespace CompuRaster
@@ -32,7 +32,7 @@ namespace CompuRaster
 		Helpers::SafeRelease(m_IndexBuffer);
 	}
 
-	void Mesh::SetMaterial(ID3D11Device* pdevice, Material* pmaterial)
+	void Mesh::SetMaterial(ID3D11Device* pdevice, NaiveMaterial* pmaterial)
 	{
 		m_pMaterial = pmaterial;
 		BuildVertexBuffer(pdevice);

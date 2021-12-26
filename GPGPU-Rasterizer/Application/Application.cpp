@@ -9,7 +9,7 @@
 #include "Renderer/CompuRenderer.h"
 #include "WindowAndViewport/Window.h"
 #include "Renderer/HardwareRenderer.h"
-#include "Renderer/Pipeline/Material.h"
+#include "Renderer/Pipeline/NaivePipeline/NaiveMaterial.h"
 
 //#define HARDWARE_RENDER
 #define CUSTOM_RENDER
@@ -109,7 +109,7 @@ void mainCompuRaster(const Window& window, Camera& camera)
 	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
 
 	CompuRaster::Mesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
-	CompuRaster::Material mat{ dcRenderer.GetDevice(), L"./Resources/SoftwareShader/TestPipeline.hlsl" };
+	CompuRaster::NaiveMaterial mat{ dcRenderer.GetDevice(), L"./Resources/SoftwareShader/TestPipeline.hlsl" };
 	mesh.SetMaterial(dcRenderer.GetDevice(), &mat);
 
 	MSG msg;

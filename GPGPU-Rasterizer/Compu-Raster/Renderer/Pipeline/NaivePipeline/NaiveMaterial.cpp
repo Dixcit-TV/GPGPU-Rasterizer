@@ -1,12 +1,12 @@
 #include "pch.h"
-#include "Material.h"
-#include "../../Mesh/Mesh.h"
+#include "NaiveMaterial.h"
+#include "../../../Mesh/Mesh.h"
 #include "Managers/Logger.h"
 
 namespace CompuRaster
 {
 
-	Material::Material(ID3D11Device* pdevice, const wchar_t* csPath)
+	NaiveMaterial::NaiveMaterial(ID3D11Device* pdevice, const wchar_t* csPath)
 		: m_ShaderCBBinding{}
 		, m_ShaderCBs{}
 		, m_InputLayoutDescs{}
@@ -19,7 +19,7 @@ namespace CompuRaster
 		InitConstantBuffers(pdevice, m_pPipelineShader, EShaderType::Compute);
 	}
 
-	Material::~Material()
+	NaiveMaterial::~NaiveMaterial()
 	{
 		for (auto& bufferPairs : m_ShaderCBs)
 		{
@@ -30,7 +30,7 @@ namespace CompuRaster
 		Helpers::SafeDelete(m_pPipelineShader);
 	}
 
-	void Material::SetShaders(ID3D11DeviceContext* pdeviceContext, const Mesh* pmesh) const
+	void NaiveMaterial::SetShaders(ID3D11DeviceContext* pdeviceContext, const Mesh* pmesh) const
 	{
 		ID3D11ShaderResourceView* vBuffer{ pmesh->GetVertexBufferView() };
 		ID3D11ShaderResourceView* iBuffer{ pmesh->GetIndexBufferView() };
@@ -51,7 +51,7 @@ namespace CompuRaster
 		pdeviceContext->CSSetShader(m_pPipelineShader ? m_pPipelineShader->GetShader() : nullptr, nullptr, 0);
 	}
 
-	void Material::SetShaderParameters(EShaderType shaderType, const std::vector<ConstantBufferBinding>& bindings, ID3D11DeviceContext* pdeviceContext) const
+	void NaiveMaterial::SetShaderParameters(EShaderType shaderType, const std::vector<ConstantBufferBinding>& bindings, ID3D11DeviceContext* pdeviceContext) const
 	{
 		if (shaderType != EShaderType::Compute)
 			return;
@@ -62,7 +62,7 @@ namespace CompuRaster
 		}
 	}
 
-	void Material::GenerateInputLayout(ID3D11Device* pdevice)
+	void NaiveMaterial::GenerateInputLayout(ID3D11Device* pdevice)
 	{
 		if (!m_pPipelineShader || !m_pPipelineShader->GetShader())
 			return;

@@ -6,7 +6,7 @@ class Camera;
 
 namespace CompuRaster
 {
-	class Material;
+	class NaiveMaterial;
 
 	class Mesh
 	{
@@ -19,7 +19,7 @@ namespace CompuRaster
 		Mesh& operator=(const Mesh&) = delete;
 		Mesh& operator=(Mesh&&) noexcept = delete;
 
-		void SetMaterial(ID3D11Device* pdevice, Material* pmaterial);
+		void SetMaterial(ID3D11Device* pdevice, NaiveMaterial* pmaterial);
 		void SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceContext) const;
 		ID3D11ShaderResourceView* GetVertexBufferView() const { return m_VertexBufferView; }
 		ID3D11ShaderResourceView* GetIndexBufferView() const { return m_IndexBufferView; }
@@ -39,7 +39,7 @@ namespace CompuRaster
 		ID3D11ShaderResourceView* m_IndexBufferView;
 		ID3D11Buffer* m_VertexBuffer;
 		ID3D11Buffer* m_IndexBuffer;
-		Material* m_pMaterial;
+		NaiveMaterial* m_pMaterial;
 
 		void BuildVertexBuffer(ID3D11Device* pdevice);
 		void BuildIndexBuffer(ID3D11Device* pdevice);

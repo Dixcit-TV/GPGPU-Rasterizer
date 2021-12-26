@@ -14,16 +14,16 @@ namespace CompuRaster
 		UINT slotID;
 	};
 
-	class Material
+	class NaiveMaterial
 	{
 	public:
-		explicit Material(ID3D11Device* pdevice, const wchar_t* csPath);
-		~Material();
+		explicit NaiveMaterial(ID3D11Device* pdevice, const wchar_t* csPath);
+		~NaiveMaterial();
 
-		Material(const Material&) = delete;
-		Material(Material&&) noexcept = delete;
-		Material& operator=(const Material&) = delete;
-		Material& operator=(Material&&) noexcept = delete;
+		NaiveMaterial(const NaiveMaterial&) = delete;
+		NaiveMaterial(NaiveMaterial&&) noexcept = delete;
+		NaiveMaterial& operator=(const NaiveMaterial&) = delete;
+		NaiveMaterial& operator=(NaiveMaterial&&) noexcept = delete;
 
 		template<typename SHADER_TYPE>
 		void InitConstantBuffers(ID3D11Device* pdevice, Shader<SHADER_TYPE>* pshader, EShaderType type);
@@ -51,7 +51,7 @@ namespace CompuRaster
 	};
 
 	template<typename SHADER_TYPE>
-	void Material::InitConstantBuffers(ID3D11Device* pdevice, Shader<SHADER_TYPE>* pshader, EShaderType type)
+	void NaiveMaterial::InitConstantBuffers(ID3D11Device* pdevice, Shader<SHADER_TYPE>* pshader, EShaderType type)
 	{
 		if (!pshader)
 			return;
@@ -98,7 +98,7 @@ namespace CompuRaster
 	}
 
 	template<typename TARGET_TYPE, typename... ARG_TYPE>
-	void Material::SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, const std::string& bufferName, ARG_TYPE&&... args)
+	void NaiveMaterial::SetConstantBuffer(ID3D11DeviceContext* pdeviceContext, const std::string& bufferName, ARG_TYPE&&... args)
 	{
 		ID3D11Buffer* pbuffer{ m_ShaderCBs.find(bufferName) != m_ShaderCBs.cend() ? m_ShaderCBs[bufferName] : nullptr };
 		if (!pbuffer)
