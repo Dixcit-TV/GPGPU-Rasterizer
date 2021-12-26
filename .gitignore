@@ -22,3 +22,4 @@
 /GPGPU-Rasterizer/Compu-Raster/Release
 /GPGPU-Rasterizer/Compu-Raster/x64
 /GPGPU-Rasterizer/Compu-Raster/Win32
+*.diagsession

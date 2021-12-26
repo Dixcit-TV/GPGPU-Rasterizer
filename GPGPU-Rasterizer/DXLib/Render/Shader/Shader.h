@@ -127,3 +127,10 @@ HRESULT Shader<SHADER_TYPE>::Init(ID3D11Device* pdevice, const wchar_t* filePath
 
 	return (pdevice->*shaderFnc)(m_pShaderBlob->GetBufferPointer(), m_pShaderBlob->GetBufferSize(), nullptr, &m_pShader);
 }
+
+using VertexShader = Shader<ID3D11VertexShader>;
+using HullShader = Shader<ID3D11HullShader>;
+using DomainShader = Shader<ID3D11DomainShader>;
+using GeometryShader = Shader<ID3D11GeometryShader>;
+using PixelShader = Shader<ID3D11PixelShader>;
+using ComputeShader = Shader<ID3D11ComputeShader>;

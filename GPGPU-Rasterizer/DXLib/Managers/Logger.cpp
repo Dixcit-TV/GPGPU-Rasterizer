@@ -5,33 +5,37 @@ Logger::Logger()
 	: m_ConsoleHandle{ GetStdHandle(STD_OUTPUT_HANDLE) }
 {}
 
-void Logger::Log(ELogSeverity severity, const std::wstring& message, bool assertion, UINT lineNumber, const std::wstring& file)
+void Logger::Log(ELogSeverity severity, const std::wstring& message, bool assertion, bool appendLineAndFile, UINT lineNumber, const std::wstring& file) const
 {
-	std::wstringstream ss;
-	switch(severity)
-	{
-	case ELogSeverity::Info:
-		SetConsoleTextAttribute(m_ConsoleHandle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-		ss << L"--INFO: ";
-		break;
-	case ELogSeverity::Warning:
-		SetConsoleTextAttribute(m_ConsoleHandle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN);
-		ss << L"--WARNING: ";
-		break;
-	case ELogSeverity::Error:
-		SetConsoleTextAttribute(m_ConsoleHandle, FOREGROUND_INTENSITY | FOREGROUND_RED);
-		ss << L"--ERROR: ";
-		break;
-	default: return;
-	}
-
 	if (!assertion)
 	{
-		ss << file << " at line " << std::to_wstring(lineNumber) << ": " << message << std::endl;
+
+		std::wstringstream ss{};
+		switch(severity)
+		{
+		case ELogSeverity::Info:
+			SetConsoleTextAttribute(m_ConsoleHandle, FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_BLUE);
+			ss << L"\t--INFO: ";
+			break;
+		case ELogSeverity::Warning:
+			SetConsoleTextAttribute(m_ConsoleHandle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN);
+			ss << L"\t--WARNING: ";
+			break;
+		case ELogSeverity::Error:
+			SetConsoleTextAttribute(m_ConsoleHandle, FOREGROUND_INTENSITY | FOREGROUND_RED);
+			ss << L"\t--ERROR: ";
+			break;
+		default: return;
+		}
+
+		if (appendLineAndFile)
+			ss << file << " at line " << std::to_wstring(lineNumber) << ": ";
+
+		ss << message << std::endl;
 		std::wcout << ss.str();
+
+		SetConsoleTextAttribute(m_ConsoleHandle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
 		if (severity == ELogSeverity::Error) __debugbreak();
 	}
-
-	SetConsoleTextAttribute(m_ConsoleHandle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 }
