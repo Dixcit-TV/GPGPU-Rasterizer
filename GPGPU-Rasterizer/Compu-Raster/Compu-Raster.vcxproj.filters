@@ -21,10 +21,19 @@
     <ClInclude Include="Renderer\CompuRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\Pipeline\Material.h">
+    <ClInclude Include="Renderer\Pipeline\NaivePipeline\NaiveMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mesh\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Pipeline\Pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Pipeline\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\CompuMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,10 +44,19 @@
     <ClCompile Include="Renderer\CompuRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\Pipeline\Material.cpp">
+    <ClCompile Include="Renderer\Pipeline\NaivePipeline\NaiveMaterial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mesh\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Pipeline\Pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Pipeline\Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\CompuMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

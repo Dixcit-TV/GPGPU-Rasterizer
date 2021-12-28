@@ -183,13 +183,19 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Mesh\CompuMesh.h" />
+    <ClInclude Include="Renderer\Pipeline\Material.h" />
     <ClInclude Include="Mesh\Mesh.h" />
+    <ClInclude Include="Renderer\Pipeline\Pipeline.h" />
     <ClInclude Include="Renderer\CompuRenderer.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Renderer\Pipeline\Material.h" />
+    <ClInclude Include="Renderer\Pipeline\NaivePipeline\NaiveMaterial.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Mesh\CompuMesh.cpp" />
+    <ClCompile Include="Renderer\Pipeline\Material.cpp" />
     <ClCompile Include="Mesh\Mesh.cpp" />
+    <ClCompile Include="Renderer\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Renderer\CompuRenderer.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -197,7 +203,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Renderer\Pipeline\Material.cpp" />
+    <ClCompile Include="Renderer\Pipeline\NaivePipeline\NaiveMaterial.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
