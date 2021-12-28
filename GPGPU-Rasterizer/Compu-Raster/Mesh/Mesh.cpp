@@ -45,7 +45,7 @@ namespace CompuRaster
 			return;
 
 		UINT vCount{ static_cast<UINT>(std::size(m_VertexPositions)) };
-		UINT vStride{ static_cast<UINT>(sizeof DirectX::XMFLOAT3 + sizeof DirectX::XMFLOAT3) };
+		UINT vStride{ 32u };
 
 		D3D11_BUFFER_DESC vBufferDesc{};
 		vBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -64,7 +64,7 @@ namespace CompuRaster
 
 			if (idx < std::size(m_VertexNorms))
 			{
-				memOffset += static_cast<UINT>(sizeof DirectX::XMFLOAT3);
+				memOffset += 16u;
 				memcpy(pdata + memOffset, &m_VertexNorms[idx], sizeof m_VertexNorms[idx]);
 			}
 		}
