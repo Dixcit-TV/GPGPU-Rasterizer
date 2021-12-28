@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include "../../Common/Helpers.h"
+#include "../../Managers/Logger.h"
 
 enum class EShaderType
 {
@@ -24,10 +25,12 @@ public:
 
 	SHADER_TYPE* GetShader() const { return m_pShader; }
 	ID3DBlob* GetShaderBlob() const { return m_pShaderBlob; }
+	ID3D11ClassLinkage* GetClassLinkage() const { return m_ShaderLinkage; }
 
 private:
 	SHADER_TYPE* m_pShader;
 	ID3DBlob* m_pShaderBlob;
+	ID3D11ClassLinkage* m_ShaderLinkage;
 
 	HRESULT Init(ID3D11Device* pdevice, const wchar_t* filePath, const char* entryPoint);
 };
@@ -36,14 +39,17 @@ template<typename SHADER_TYPE>
 Shader<SHADER_TYPE>::Shader(ID3D11Device* pdevice, const wchar_t* filePath, const char* entryPoint)
 	: m_pShader{ nullptr }
 {
-	const HRESULT res{ Init(pdevice, filePath, entryPoint) };
-	if (FAILED(res))
-		res;
+	HRESULT res{ pdevice->CreateClassLinkage(&m_ShaderLinkage) };
+	APP_LOG_WARNING(L"Class Linkage object could not be created for '" + std::wstring(filePath) + L"' !", SUCCEEDED(res));
+
+	res = Init(pdevice, filePath, entryPoint);
+	APP_LOG_ERROR(L"Shader '" + std::wstring(filePath) + L"' could not be loaded !", SUCCEEDED(res));
 }
 
 template<typename SHADER_TYPE>
 Shader<SHADER_TYPE>::~Shader()
 {
+	Helpers::SafeRelease(m_ShaderLinkage);
 	Helpers::SafeRelease(m_pShaderBlob);
 	Helpers::SafeRelease(m_pShader);
 }
@@ -125,7 +131,7 @@ HRESULT Shader<SHADER_TYPE>::Init(ID3D11Device* pdevice, const wchar_t* filePath
 		return res;
 	}
 
-	return (pdevice->*shaderFnc)(m_pShaderBlob->GetBufferPointer(), m_pShaderBlob->GetBufferSize(), nullptr, &m_pShader);
+	return (pdevice->*shaderFnc)(m_pShaderBlob->GetBufferPointer(), m_pShaderBlob->GetBufferSize(), m_ShaderLinkage, &m_pShader);
 }
 
 using VertexShader = Shader<ID3D11VertexShader>;
