@@ -53,7 +53,7 @@ namespace CompuRaster
 		APP_LOG_ERROR(L"Could not query DXGI device !", SUCCEEDED(res));
 
 		IDXGIAdapter* dxgiAdapter;
-		res = dxgiDevice->GetParent(__uuidof(IDXGIAdapter), reinterpret_cast<void**>(&dxgiAdapter));
+		res = dxgiDevice->GetAdapter(&dxgiAdapter);
 		APP_LOG_ERROR(L"Could not query DXGI adapter !", SUCCEEDED(res));
 
 		IDXGIFactory* dxgiFactory;
@@ -148,6 +148,6 @@ namespace CompuRaster
 	void CompuRenderer::Draw(Camera* pcamera, Mesh* pmesh) const
 	{
 		pmesh->SetupDrawInfo(pcamera, m_pDxDeviceContext);
-		m_pDxDeviceContext->Dispatch(48, 48, 1);
+		m_pDxDeviceContext->Dispatch(64, 1, 1);
 	}
 }
