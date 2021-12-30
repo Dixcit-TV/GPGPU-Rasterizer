@@ -81,6 +81,9 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 
 	uint4 aabb = GetAabb(v0.position.xy, v1.position.xy, v2.position.xy, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
+	uint2 aabb2 = uint2((aabb.x << 16) | (0x0000ffff & aabb.y), (aabb.z << 16) | (0x0000ffff & aabb.w));
+	aabb = uint4(aabb2.x >> 16, aabb2.x & 0x0000ffff, aabb2.y >> 16, aabb2.y & 0x0000ffff);
+
 	const float invTriArea = 1 / cross(v0.position.xyz - v2.position.xyz, v1.position.xyz - v2.position.xyz).z;
 	for (uint x = aabb.x; x <= aabb.z; ++x)
 	{
@@ -104,6 +107,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 					normal = normalize(normal);
 					float diffuseStrength = saturate(dot(normal, -lightDir)) * lightIntensity;
 					diffuseStrength /= PI;
+					diffuseStrength = 1.f;
 
 					g_RenderTarget[uint2(x, y)] = float4(float3(0.5f, 0.5f, 0.5f) * diffuseStrength, 1.f);
 				}
@@ -136,6 +140,8 @@ float4 NdcVertexToScreen(float4 ndcVertex, float viewportWidth, float viewportHe
 
 uint4 GetAabb(float2 v0, float2 v1, float2 v2, float viewportWidth, float viewportHeight)
 {
-	float4 aabb = float3(min(v0.xy, min(v1.xy, v2.xy)), 0.f).xyzz + float3(max(v0.xy, max(v1.xy, v2.xy)), 0.f).zzxy + float2(-1.f, 1.f).xxyy;
-	return clamp(aabb, (0.f).xxxx, float2(viewportWidth, viewportHeight).xyxy);
+	float4 aabb;
+	aabb.xy = min(v0.xy, min(v1.xy, v2.xy));
+	aabb.zw = ceil(max(v0.xy, max(v1.xy, v2.xy)));
+	return aabb;
 }

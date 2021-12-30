@@ -12,7 +12,7 @@ enum class ELogSeverity
 #if defined(DEBUG) | defined(_DEBUG)
 	#define APP_LOG(severity, message, assertion, appendLineAndFile) Logger::GetInstance().Log(severity, message, assertion, appendLineAndFile, __LINE__, WFILE(__FILE__));
 #else
-	#define APP_LOG(severity, message, assertion)
+	#define APP_LOG(severity, message, assertion, appendLineAndFile)
 #endif
 
 #define APP_LOG_INFO(message) APP_LOG(ELogSeverity::Info, message, false, false)

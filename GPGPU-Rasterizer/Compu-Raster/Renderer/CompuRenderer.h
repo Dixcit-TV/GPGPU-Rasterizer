@@ -6,6 +6,8 @@ class Window;
 
 namespace CompuRaster
 {
+	class CompuMesh;
+	class Pipeline;
 	class Mesh;
 
 	class CompuRenderer
@@ -35,6 +37,7 @@ namespace CompuRaster
 		}
 
 		void Draw(Camera* pcamera, Mesh* pmesh) const;
+		void DrawPipeline(const Pipeline& pipeline, Camera* pcamera, CompuMesh* pmesh) const;
 
 	private:
 		ID3D11Device* m_pDxDevice;

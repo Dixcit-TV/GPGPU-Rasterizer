@@ -2,6 +2,7 @@
 #include "Material.h"
 #include "Common/Helpers.h"
 #include "Managers/Logger.h"
+#include "../../Mesh/CompuMesh.h"
 
 namespace CompuRaster
 {
@@ -12,6 +13,11 @@ namespace CompuRaster
 
 	Material::~Material()
 	{
+		for (auto& bufferPairs : m_ShaderCBs)
+		{
+			Helpers::SafeRelease(bufferPairs.second);
+		}
+
 		Helpers::SafeDelete(m_pVertexShader);
 		Helpers::SafeDelete(m_pPixelShader);
 	}
@@ -23,6 +29,8 @@ namespace CompuRaster
 
 		//m_pPixelShader = new ComputeShader(pdevice, psPath);
 		//APP_LOG_ERROR(L"Could not create Pixel Shader !", m_pPixelShader);
+
+		InitConstantBuffers(pdevice, m_pVertexShader, EShaderType::Compute);
 	}
 
 	void Material::InitConstantBuffers(ID3D11Device* pdevice, ComputeShader* pshader, EShaderType type)
@@ -52,7 +60,7 @@ namespace CompuRaster
 				|| FAILED(psrConstantBuffer->GetDesc(&cbDesc)))
 				continue;
 
-			m_ShaderCBBinding[type].push_back(ConstantBufferBinding{ inputDesc.Name, inputDesc.BindPoint });
+			m_ShaderCBBinding[type].push_back(CBufferBinding{ inputDesc.Name, inputDesc.BindPoint });
 
 			if (m_ShaderCBs[inputDesc.Name] || strcmp(inputDesc.Name, "G_VERTEX_BUFFER") == 0 || strcmp(inputDesc.Name, "G_TRANS_VERTEX_BUFFER") == 0)
 				continue;
@@ -68,6 +76,35 @@ namespace CompuRaster
 			res = pdevice->CreateBuffer(&bufferDesc, nullptr, &m_ShaderCBs[inputDesc.Name]);
 			if (FAILED(res))
 				res;
+		}
+	}
+
+	void Material::SetShaders(ID3D11DeviceContext* pdeviceContext, const CompuMesh* pmesh) const
+	{
+		ID3D11ShaderResourceView* vBuffer{ pmesh->GetVertexBufferView() };
+
+		for (const auto& mapPair : m_ShaderCBBinding)
+		{
+			SetShaderParameters(mapPair.first, mapPair.second, pdeviceContext);
+
+			for (const CBufferBinding& binding : mapPair.second)
+			{
+				if (binding.name == "G_VERTEX_BUFFER")
+					pdeviceContext->CSSetShaderResources(binding.slotID, 1, &vBuffer);
+			}
+		}
+
+		pdeviceContext->CSSetShader(m_pVertexShader ? m_pVertexShader->GetShader() : nullptr, nullptr, 0);
+	}
+
+	void Material::SetShaderParameters(EShaderType shaderType, const std::vector<CBufferBinding>& bindings, ID3D11DeviceContext* pdeviceContext) const
+	{
+		if (shaderType != EShaderType::Compute)
+			return;
+
+		for (const CBufferBinding& binding : bindings)
+		{
+			pdeviceContext->CSSetConstantBuffers(binding.slotID, 1, &m_ShaderCBs.at(binding.name));
 		}
 	}
 }

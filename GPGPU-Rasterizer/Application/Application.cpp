@@ -5,14 +5,20 @@
 #include "Managers/TimeSettings.h"
 #include "Mesh/TriangleMesh.h"
 #include "Material/Material.h"
+#include "Mesh/CompuMesh.h"
 #include "Mesh/Mesh.h"
 #include "Renderer/CompuRenderer.h"
 #include "WindowAndViewport/Window.h"
 #include "Renderer/HardwareRenderer.h"
 #include "Renderer/Pipeline/NaivePipeline/NaiveMaterial.h"
+#include "Renderer/Pipeline/Material.h"
+#include "Renderer/Pipeline/Pipeline.h"
 
 //#define HARDWARE_RENDER
 #define CUSTOM_RENDER
+
+//#define CUSTOM_RENDER_NAIVE
+#define CUSTOM_RENDER_PIPELINE
 
 void mainDXRaster(const Window& window, Camera& camera);
 void mainCompuRaster(const Window& window, Camera& camera);
@@ -98,19 +104,36 @@ void mainCompuRaster(const Window& window, Camera& camera)
 	std::vector<uint32_t> indices;
 
 	//std::vector positions{
-	//DirectX::XMFLOAT3{0.f, 4.f, 0.f}
-	//, DirectX::XMFLOAT3{4.f, -4.f, 0.f}
-	//, DirectX::XMFLOAT3{-4.f, -4.f, 0.f}
-	//, DirectX::XMFLOAT3{6.f, 4.f, 2.f}
+	//	DirectX::XMFLOAT3{0.f, 10.f, 0.f}
+	//	, DirectX::XMFLOAT3{10.f, -10.f, 0.f}
+	//	, DirectX::XMFLOAT3{-10.f, -10.f, 0.f}
+	//	, DirectX::XMFLOAT3{14.f, 10.f, 5.f}
+	//};
+
+	//std::vector normals{
+	//DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//, DirectX::XMFLOAT3{0.f, 0.7071f, -0.7071f}
 	//};
 
 	//std::vector<uint32_t> indices{ 0, 1, 2, 0, 3, 1 };
 
 	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
-
+#if defined(CUSTOM_RENDER_NAIVE)
 	CompuRaster::Mesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	CompuRaster::NaiveMaterial mat{ dcRenderer.GetDevice(), L"./Resources/SoftwareShader/TestPipeline.hlsl" };
 	mesh.SetMaterial(dcRenderer.GetDevice(), &mat);
+
+#elif defined(CUSTOM_RENDER_PIPELINE)
+	CompuRaster::CompuMesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
+	CompuRaster::Material mat{};
+	mat.Init(dcRenderer.GetDevice(), L"./Resources/SoftwareShader/Pipeline/VertexShader.hlsl", L"");
+	mesh.SetMaterial(dcRenderer.GetDevice(), &mat);
+
+	CompuRaster::Pipeline pipeline{};
+	pipeline.Init(dcRenderer.GetDevice(), mesh.GetVertexCount(), static_cast<UINT>(std::size(indices) / 3), L"./Resources/SoftwareShader/Pipeline/GeometrySetup.hlsl", L"./Resources/SoftwareShader/Pipeline/Rasterizer.hlsl", L"./Resources/SoftwareShader/Pipeline/Rasterizer2.hlsl");
+#endif
 
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
@@ -129,7 +152,11 @@ void mainCompuRaster(const Window& window, Camera& camera)
 
 		camera.Update(timeSettings.GetElapsed());
 		dcRenderer.ClearBuffers();
+#if defined(CUSTOM_RENDER_NAIVE)
 		dcRenderer.Draw(&camera, &mesh);
+#elif defined(CUSTOM_RENDER_PIPELINE)
+		dcRenderer.DrawPipeline(pipeline, &camera, &mesh);
+#endif
 		dcRenderer.Present();
 
 		timeSettings.TrySleep();

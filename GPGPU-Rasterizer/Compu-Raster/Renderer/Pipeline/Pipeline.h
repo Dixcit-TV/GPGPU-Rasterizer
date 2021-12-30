@@ -23,7 +23,7 @@ namespace CompuRaster
 		Pipeline& operator=(const Pipeline&) = delete;
 		Pipeline& operator=(Pipeline&&) noexcept = delete;
 
-		void Init(ID3D11Device* pdevice, const wchar_t* geometrySetupPath, const wchar_t* binningPath, const wchar_t* finePath);
+		void Init(ID3D11Device* pdevice, UINT vCount, UINT triangleCount, const wchar_t* geometrySetupPath, const wchar_t* binningPath, const wchar_t* finePath);
 
 		void Dispatch(ID3D11DeviceContext* pdeviceContext, CompuMesh* pmesh, Camera* pcamera) const;
 
@@ -40,7 +40,7 @@ namespace CompuRaster
 		ID3D11ShaderResourceView* m_pRasterDataSRV = nullptr;
 		ID3D11UnorderedAccessView* m_pRasterDataUAV = nullptr;
 
-		ID3D11Texture2D* m_pBinTexture = nullptr;
+		ID3D11Buffer* m_pBinTexture = nullptr;
 		ID3D11ShaderResourceView* m_pBinSRV = nullptr;
 		ID3D11UnorderedAccessView* m_pBinUAV = nullptr;
 	};

@@ -6,6 +6,7 @@
 #include "Common/Helpers.h"
 #include "../Mesh/Mesh.h"
 #include "Managers/Logger.h"
+#include "Pipeline/Pipeline.h"
 
 namespace CompuRaster
 {
@@ -149,5 +150,10 @@ namespace CompuRaster
 	{
 		pmesh->SetupDrawInfo(pcamera, m_pDxDeviceContext);
 		m_pDxDeviceContext->Dispatch(64, 1, 1);
+	}
+
+	void CompuRenderer::DrawPipeline(const Pipeline& pipeline, Camera* pcamera, CompuMesh* pmesh) const
+	{
+		pipeline.Dispatch(m_pDxDeviceContext, pmesh, pcamera);
 	}
 }

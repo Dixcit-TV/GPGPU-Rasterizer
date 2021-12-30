@@ -23,8 +23,11 @@ namespace CompuRaster
 		void SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceContext) const;
 		ID3D11ShaderResourceView* GetVertexBufferView() const { return m_VertexBufferView; }
 		ID3D11ShaderResourceView* GetIndexBufferView() const { return m_IndexBufferView; }
+		ID3D11ShaderResourceView* GetVertexOutBufferView() const { return m_VertexOutBufferView; }
+		ID3D11UnorderedAccessView* GetVertexOutBufferUAV() const { return m_VertexOutBufferUAV; }
 
 		UINT GetIndexCount() const { return static_cast<UINT>(std::size(m_Indices)); }
+		UINT GetVertexCount() const { return static_cast<UINT>(std::size(m_VertexPositions)); }
 
 	private:
 		DirectX::XMFLOAT4X4 m_WorldMatrix;
@@ -36,8 +39,11 @@ namespace CompuRaster
 		std::vector<uint32_t> m_Indices;
 
 		ID3D11ShaderResourceView* m_VertexBufferView;
+		ID3D11ShaderResourceView* m_VertexOutBufferView;
 		ID3D11ShaderResourceView* m_IndexBufferView;
+		ID3D11UnorderedAccessView* m_VertexOutBufferUAV;
 		ID3D11Buffer* m_VertexBuffer;
+		ID3D11Buffer* m_VertexOutBuffer;
 		ID3D11Buffer* m_IndexBuffer;
 		Material* m_pMaterial;
 

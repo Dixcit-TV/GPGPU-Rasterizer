@@ -6,6 +6,8 @@
 #define GROUP_DIMs 32, 32, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
 
+#define VERTEX_COUNT 34914
+
 //cbuffer ViewportInfo
 //{
 //	float2 G_VIEWPORT_SIZE;
@@ -55,6 +57,10 @@ void NDCToScreen(inout float4 vertex, float viewportWidth, float viewportHeight)
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 {
 	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(64, 1, 1) /*G_DISPATCH_DIMS*/);
+
+	if (globalThreadId >= VERTEX_COUNT)
+		return;
+
 	Vertex_In v = G_VERTEX_BUFFER[globalThreadId];
 
 	Vertex_Out vOut = Transform(v);

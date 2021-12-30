@@ -15,7 +15,12 @@ namespace CompuRaster
 		, m_VertexTangents{  }
 		, m_VertexUvs{ uvs }
 		, m_Indices{ indices }
+		, m_VertexBufferView{ nullptr }
+		, m_VertexOutBufferView{ nullptr }
+		, m_IndexBufferView{ nullptr }
+		, m_VertexOutBufferUAV{ nullptr }
 		, m_VertexBuffer{ nullptr }
+		, m_VertexOutBuffer{ nullptr }
 		, m_IndexBuffer{ nullptr }
 		, m_pMaterial{ nullptr }
 	{
@@ -28,8 +33,11 @@ namespace CompuRaster
 	CompuMesh::~CompuMesh()
 	{
 		Helpers::SafeRelease(m_VertexBufferView);
+		Helpers::SafeRelease(m_VertexOutBufferView);
 		Helpers::SafeRelease(m_IndexBufferView);
+		Helpers::SafeRelease(m_VertexOutBufferUAV);
 		Helpers::SafeRelease(m_VertexBuffer);
+		Helpers::SafeRelease(m_VertexOutBuffer);
 		Helpers::SafeRelease(m_IndexBuffer);
 	}
 
@@ -87,6 +95,36 @@ namespace CompuRaster
 		res = pdevice->CreateShaderResourceView(m_VertexBuffer, &viewDesc, &m_VertexBufferView);
 		if (FAILED(res))
 			return;
+
+		UINT vOutStride{ 32u };
+
+		vBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		vBufferDesc.ByteWidth = vOutStride * vCount;
+		vBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+		vBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		vBufferDesc.StructureByteStride = vOutStride;
+
+		res = pdevice->CreateBuffer(&vBufferDesc, nullptr, &m_VertexOutBuffer);
+		if (FAILED(res))
+			return;
+
+		viewDesc.Format = DXGI_FORMAT_UNKNOWN;
+		viewDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		viewDesc.Buffer.FirstElement = 0;
+		viewDesc.Buffer.NumElements = vCount;
+		res = pdevice->CreateShaderResourceView(m_VertexOutBuffer, &viewDesc, &m_VertexOutBufferView);
+		if (FAILED(res))
+			return;
+
+		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
+		uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+		uavDesc.Buffer.Flags = 0;
+		uavDesc.Buffer.FirstElement = 0;
+		uavDesc.Buffer.NumElements = vCount;
+		res = pdevice->CreateUnorderedAccessView(m_VertexOutBuffer, &uavDesc, &m_VertexOutBufferUAV);
+		if (FAILED(res))
+			return;
 	}
 
 	void CompuMesh::BuildIndexBuffer(ID3D11Device* pdevice)
@@ -110,7 +148,7 @@ namespace CompuRaster
 			return;
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc{};
-		viewDesc.Format = DXGI_FORMAT_UNKNOWN;
+		viewDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 		viewDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
 		viewDesc.BufferEx.FirstElement = 0;
 		viewDesc.BufferEx.NumElements = iCount;

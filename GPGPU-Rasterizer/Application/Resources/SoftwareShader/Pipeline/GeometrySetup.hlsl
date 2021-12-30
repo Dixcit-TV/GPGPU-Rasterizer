@@ -11,7 +11,14 @@
 
 #define TRIANGLE_COUNT 11638
 
-ByteAddressBuffer G_TRANS_VERTEX_BUFFER;
+struct Vertex_Out
+{
+	float4 position;
+	float3 normal;
+	float pad;
+};
+
+StructuredBuffer<Vertex_Out> G_TRANS_VERTEX_BUFFER;
 ByteAddressBuffer G_INDEX_BUFFER;
 
 struct RasterData
@@ -24,7 +31,7 @@ struct RasterData
 RWStructuredBuffer<RasterData> G_RASTER_DATA : register(u2);
 
 bool IsClipped(float4 vertex, float viewportWidth, float viewportHeight);
-uint4 GetAabb(float2 v0, float2 v1, float2 v2, float viewportWidth, float viewportHeight);
+uint4 GetAabb(float2 v0, float2 v1, float2 v2);
 
 [numthreads(GROUP_DIMs)]
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
@@ -34,17 +41,16 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 		return;
 
 	RasterData data = (RasterData)0;
-	uint3 tri = G_INDEX_BUFFER.Load3(globalThreadId * 4);
+	uint3 tri = G_INDEX_BUFFER.Load3(globalThreadId * 3 * 4);
 
-	const uint stride = 2;
-	const float4 v0 = asfloat(G_TRANS_VERTEX_BUFFER.Load4(tri.x * stride * 4));
-	const float4 v1 = asfloat(G_TRANS_VERTEX_BUFFER.Load4(tri.y * stride * 4));
-	const float4 v2 = asfloat(G_TRANS_VERTEX_BUFFER.Load4(tri.z * stride * 4));
+	const float4 v0 = G_TRANS_VERTEX_BUFFER[tri.x].position;
+	const float4 v1 = G_TRANS_VERTEX_BUFFER[tri.y].position;
+	const float4 v2 = G_TRANS_VERTEX_BUFFER[tri.z].position;
 
 	data.isClipped = IsClipped(v0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT) || IsClipped(v1, VIEWPORT_WIDTH, VIEWPORT_HEIGHT) || IsClipped(v2, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 	if (!data.isClipped)
 	{
-		uint4 aabb = GetAabb(v0.xy, v1.xy, v2.xy, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+		uint4 aabb = GetAabb(v0.xy, v1.xy, v2.xy);
 
 		data.edgeEq[0] = v1.y - v2.y;
 		data.edgeEq[1] = v2.x - v1.x;
@@ -62,7 +68,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 		data.edgeEq[10] = data.edgeEq[3] * aabb.x + data.edgeEq[4] * aabb.y + data.edgeEq[5];
 		data.edgeEq[11] = data.edgeEq[6] * aabb.x + data.edgeEq[7] * aabb.y + data.edgeEq[8];
 
-		data.aabb = uint2((aabb.x << 16) | (0x0000ffff & aabb.y), (aabb.z << 16) | (0x0000ffff & aabb.w));
+		data.aabb = uint2((aabb.x << 16) | aabb.y, (aabb.z << 16) | aabb.w);
 		data.invArea = 1 / cross2d(v0.xy - v2.xy, v1.xy - v2.xy);
 	}
 
@@ -76,10 +82,10 @@ bool IsClipped(float4 vertex, float viewportWidth, float viewportHeight)
 		|| vertex.z < 0.f || vertex.z > 1.f;
 }
 
-uint4 GetAabb(float2 v0, float2 v1, float2 v2, float viewportWidth, float viewportHeight)
+uint4 GetAabb(float2 v0, float2 v1, float2 v2)
 {
 	float4 aabb;
 	aabb.xy = min(v0.xy, min(v1.xy, v2.xy));
 	aabb.zw = ceil(max(v0.xy, max(v1.xy, v2.xy)));
-	return asuint(aabb);
+	return aabb;
 }

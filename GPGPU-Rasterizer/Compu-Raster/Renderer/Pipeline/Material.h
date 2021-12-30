@@ -9,7 +9,7 @@ namespace CompuRaster
 {
 	class CompuMesh;
 
-	struct ConstantBufferBinding
+	struct CBufferBinding
 	{
 		std::string name;
 		UINT slotID;
@@ -38,7 +38,7 @@ namespace CompuRaster
 		void SetShaders(ID3D11DeviceContext* pdeviceContext, const CompuMesh* pmesh) const;
 
 	private:
-		std::map<EShaderType, std::vector<ConstantBufferBinding>> m_ShaderCBBinding;
+		std::map<EShaderType, std::vector<CBufferBinding>> m_ShaderCBBinding;
 		std::map<std::string, ID3D11Buffer*> m_ShaderCBs;
 
 		ComputeShader* m_pVertexShader;
@@ -48,7 +48,7 @@ namespace CompuRaster
 
 		//UINT m_InputLayoutSize;
 
-		void SetShaderParameters(EShaderType shaderType, const std::vector<ConstantBufferBinding>& bindings, ID3D11DeviceContext* pdeviceContext) const;
+		void SetShaderParameters(EShaderType shaderType, const std::vector<CBufferBinding>& bindings, ID3D11DeviceContext* pdeviceContext) const;
 	};
 
 	template<typename TARGET_TYPE, typename... ARG_TYPE>
