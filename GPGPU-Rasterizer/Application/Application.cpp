@@ -62,7 +62,7 @@ void mainDXRaster(const Window& window, Camera& camera)
 
 	//std::vector<uint32_t> indices{ 0, 1, 2 };
 
-	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
+	ObjReader::LoadModel(L"./Resources/Models/Holocron.obj", positions, normals, uvs, indices);
 
 	TriangleMesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	Material mat{ hwRenderer.GetDevice(), L"./Resources/HardwareShader/VS_PosNormUV.hlsl", nullptr, nullptr, nullptr, L"Resources/HardwareShader/PS_LambertDiffuse.hlsl" };
@@ -119,7 +119,7 @@ void mainCompuRaster(const Window& window, Camera& camera)
 
 	//std::vector<uint32_t> indices{ 0, 1, 2, 0, 3, 1 };
 
-	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
+	ObjReader::LoadModel(L"./Resources/Models/Pine.obj", positions, normals, uvs, indices);
 #if defined(CUSTOM_RENDER_NAIVE)
 	CompuRaster::Mesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	CompuRaster::NaiveMaterial mat{ dcRenderer.GetDevice(), L"./Resources/SoftwareShader/TestPipeline.hlsl" };
@@ -132,7 +132,8 @@ void mainCompuRaster(const Window& window, Camera& camera)
 	mesh.SetMaterial(dcRenderer.GetDevice(), &mat);
 
 	CompuRaster::Pipeline pipeline{};
-	pipeline.Init(dcRenderer.GetDevice(), mesh.GetVertexCount(), static_cast<UINT>(std::size(indices) / 3), L"./Resources/SoftwareShader/Pipeline/GeometrySetup.hlsl", L"./Resources/SoftwareShader/Pipeline/Rasterizer.hlsl", L"./Resources/SoftwareShader/Pipeline/Rasterizer2.hlsl");
+	//pipeline.Init(dcRenderer.GetDevice(), mesh.GetVertexCount(), static_cast<UINT>(std::size(indices) / 3), L"./Resources/SoftwareShader/Pipeline/GeometrySetup.hlsl", L"./Resources/SoftwareShader/Pipeline/Rasterizer.hlsl", L"./Resources/SoftwareShader/Pipeline/Rasterizer2.hlsl");
+	pipeline.Init(dcRenderer.GetDevice(), mesh.GetVertexCount(), static_cast<UINT>(std::size(indices) / 3), L"./Resources/SoftwareShader/Pipeline/GeometrySetup.hlsl", L"./Resources/SoftwareShader/Pipeline/Rasterizer.hlsl", L"./Resources/SoftwareShader/Pipeline/FineRasterizer.hlsl");
 #endif
 
 	MSG msg;

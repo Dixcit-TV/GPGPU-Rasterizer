@@ -70,8 +70,13 @@ void ObjReader::LoadModel(const std::wstring& objPath, std::vector<DirectX::XMFL
 		for (int idx{}; idx < vFaceCount; ++idx)
 		{
 			const XMFLOAT3& position{ tmpVertices[iVs[idx] - 1] };
-			const XMFLOAT3& normal{ tmpVNormals[iNs[idx] - 1] };
-			const XMFLOAT2& uv{ tmpUVs[iUvs[idx] - 1] };
+			XMFLOAT3 normal{};
+			if (!tmpVNormals.empty())
+				normal = tmpVNormals[iNs[idx] - 1];
+
+			XMFLOAT2 uv{};
+			if (!tmpUVs.empty())
+				uv = tmpUVs[iUvs[idx] - 1];
 
 			int64_t vIdx{ GetVertexIdx(position, positions) };
 

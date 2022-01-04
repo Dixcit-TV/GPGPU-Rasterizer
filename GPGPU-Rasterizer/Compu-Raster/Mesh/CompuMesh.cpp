@@ -169,7 +169,7 @@ namespace CompuRaster
 
 		XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
 		XMStoreFloat4x4(&worldViewProj, XMLoadFloat4x4(&viewProj));
-		m_pMaterial->SetConstantBuffer<HelperStruct::CameraObjectMatrices>(pdeviceContext, "ObjectInfo", worldViewProj, world);
+		m_pMaterial->SetConstantBuffer<HelperStruct::CameraObjectMatricesAndInfo>(pdeviceContext, "ObjectInfo", worldViewProj, world, static_cast<UINT>(std::size(m_VertexPositions)), static_cast<UINT>(std::size(m_Indices) / 3), static_cast<UINT>(std::size(m_Indices)));
 		m_pMaterial->SetShaders(pdeviceContext, this);
 	}
 }

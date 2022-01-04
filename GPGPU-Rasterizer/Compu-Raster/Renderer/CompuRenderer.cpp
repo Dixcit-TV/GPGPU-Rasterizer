@@ -120,7 +120,7 @@ namespace CompuRaster
 		APP_LOG_ERROR(L"Failed to create render target UAV !", SUCCEEDED(res));
 
 		D3D11_TEXTURE2D_DESC depthStencilDesc{ bbDesc };
-		depthStencilDesc.Format = DXGI_FORMAT_R32_UINT;
+		depthStencilDesc.Format = DXGI_FORMAT_R32_FLOAT;
 
 		ID3D11Texture2D* pdepthBuffer;
 		res = m_pDxDevice->CreateTexture2D(&depthStencilDesc, nullptr, &pdepthBuffer);

@@ -6,8 +6,6 @@
 #define GROUP_DIMs 32, 32, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
 
-#define VERTEX_COUNT 34914
-
 //cbuffer ViewportInfo
 //{
 //	float2 G_VIEWPORT_SIZE;
@@ -33,11 +31,14 @@ struct Vertex_Out
 	float pad;
 };
 
-cbuffer ObjectInfo
+cbuffer ObjectInfo : register(b0)
 {
 	float4x4 worldViewProj;
 	float4x4 world;
-};
+	uint vertexCount;
+	uint triangleCount;
+	uint indexCount;
+}
 
 StructuredBuffer<Vertex_In> G_VERTEX_BUFFER;
 RWStructuredBuffer<Vertex_Out> G_TRANS_VERTEX_BUFFER : register(u2);
@@ -58,7 +59,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 {
 	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(64, 1, 1) /*G_DISPATCH_DIMS*/);
 
-	if (globalThreadId >= VERTEX_COUNT)
+	if (globalThreadId >= vertexCount)
 		return;
 
 	Vertex_In v = G_VERTEX_BUFFER[globalThreadId];

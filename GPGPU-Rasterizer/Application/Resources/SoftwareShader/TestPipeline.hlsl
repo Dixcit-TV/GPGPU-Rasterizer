@@ -81,9 +81,6 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 
 	uint4 aabb = GetAabb(v0.position.xy, v1.position.xy, v2.position.xy, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
-	uint2 aabb2 = uint2((aabb.x << 16) | (0x0000ffff & aabb.y), (aabb.z << 16) | (0x0000ffff & aabb.w));
-	aabb = uint4(aabb2.x >> 16, aabb2.x & 0x0000ffff, aabb2.y >> 16, aabb2.y & 0x0000ffff);
-
 	const float invTriArea = 1 / cross(v0.position.xyz - v2.position.xyz, v1.position.xyz - v2.position.xyz).z;
 	for (uint x = aabb.x; x <= aabb.z; ++x)
 	{
@@ -107,7 +104,6 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 					normal = normalize(normal);
 					float diffuseStrength = saturate(dot(normal, -lightDir)) * lightIntensity;
 					diffuseStrength /= PI;
-					diffuseStrength = 1.f;
 
 					g_RenderTarget[uint2(x, y)] = float4(float3(0.5f, 0.5f, 0.5f) * diffuseStrength, 1.f);
 				}

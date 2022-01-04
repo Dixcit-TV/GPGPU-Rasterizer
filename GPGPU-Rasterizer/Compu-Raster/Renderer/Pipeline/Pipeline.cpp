@@ -83,7 +83,7 @@ namespace CompuRaster
 		//binTextureDesc.SampleDesc.Count = 1;
 		//binTextureDesc.SampleDesc.Quality = 0;
 
-		const UINT elemCount{ 4 * 3 * triangleCount };
+		const UINT elemCount{ 30 * 17 * triangleCount };
 
 		D3D11_BUFFER_DESC binBufferDesc{};
 		binBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -150,15 +150,36 @@ namespace CompuRaster
 		//pdeviceContext->CSSetShaderResources(0, 1, nullSrvs);
 
 		//FINE SHADER
+		//pdeviceContext->CSSetShader(m_pFineShader->GetShader(), nullptr, 0);
+
+		//ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
+		//pdeviceContext->CSSetShaderResources(0, 3, fineSrvs);
+		//pdeviceContext->Dispatch(1, 1, 1);
+		////pdeviceContext->Dispatch(4, 4, 1);
+		//ID3D11ShaderResourceView* nullSrvs3[]{ nullptr, nullptr, nullptr };
+		//pdeviceContext->CSSetShaderResources(0, 3, nullSrvs3);
+
+		//pdeviceContext->ClearUnorderedAccessViewUint(m_pBinUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
+
+		//BIN SHADER
+		pdeviceContext->CSSetShader(m_pBinningShader->GetShader(), nullptr, 0);
+		pdeviceContext->CSSetUnorderedAccessViews(2, 1, &m_pBinUAV, nullptr);
+		pdeviceContext->CSSetShaderResources(0, 1, &m_pRasterDataSRV);
+		pdeviceContext->Dispatch(64, 1, 1);
+
+		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
+		ID3D11ShaderResourceView* nullSrvs[]{ nullptr };
+		pdeviceContext->CSSetShaderResources(0, 1, nullSrvs);
+
+		//FINE SHADER
 		pdeviceContext->CSSetShader(m_pFineShader->GetShader(), nullptr, 0);
 
 		ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, m_pBinSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
 		pdeviceContext->CSSetShaderResources(0, 4, fineSrvs);
-		pdeviceContext->Dispatch(1, 1, 1);
-		//pdeviceContext->Dispatch(4, 4, 1);
+		pdeviceContext->Dispatch(30, 17, 1);
 		ID3D11ShaderResourceView* nullSrvs4[]{ nullptr, nullptr, nullptr, nullptr };
 		pdeviceContext->CSSetShaderResources(0, 4, nullSrvs4);
 
-		pdeviceContext->ClearUnorderedAccessViewUint(m_pBinUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
+		//pdeviceContext->ClearUnorderedAccessViewUint(m_pBinUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
 	}
 }
