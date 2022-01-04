@@ -119,7 +119,7 @@ void mainCompuRaster(const Window& window, Camera& camera)
 
 	//std::vector<uint32_t> indices{ 0, 1, 2, 0, 3, 1 };
 
-	ObjReader::LoadModel(L"./Resources/Models/Pine.obj", positions, normals, uvs, indices);
+	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
 #if defined(CUSTOM_RENDER_NAIVE)
 	CompuRaster::Mesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	CompuRaster::NaiveMaterial mat{ dcRenderer.GetDevice(), L"./Resources/SoftwareShader/TestPipeline.hlsl" };

@@ -53,8 +53,6 @@ struct FragData
 RWTexture2D<unorm float4> G_RENDER_TARGET: register(u0);
 RWTexture2D<float> G_DEPTH_BUFFER : register(u1);
 
-Texture2D myTexture;
-
 StructuredBuffer<RasterData> G_RASTER_DATA;
 ByteAddressBuffer G_TRIANGLE_BIN_BUFFER;
 StructuredBuffer<Vertex_Out> G_TRANS_VERTEX_BUFFER;
