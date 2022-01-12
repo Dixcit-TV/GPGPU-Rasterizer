@@ -40,7 +40,7 @@ groupshared uint groupCache[GROUP_X * GROUP_Y][BIN_UINT_COUNT];
 [numthreads(GROUP_DIMs)]
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 {
-	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(64, 1, 1) /*G_DISPATCH_DIMS*/);
+	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(24, 1, 1) /*G_DISPATCH_DIMS*/);
 	const uint threadCount = GROUP_X * GROUP_Y * 1;
 	uint loopCount = 0;
 
@@ -59,7 +59,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 			for (uint y = binAabb.y; y <= binAabb.w; ++y)
 			{
 				uint binIdx = y * BINNING_DIMS.x + x;
-				groupCache[groupIndex][binIdx / 32] |= 1 << (32 - binIdx % 32);
+				groupCache[groupIndex][binIdx / 32] |= 1 << (binIdx % 32);
 			}
 		}
 

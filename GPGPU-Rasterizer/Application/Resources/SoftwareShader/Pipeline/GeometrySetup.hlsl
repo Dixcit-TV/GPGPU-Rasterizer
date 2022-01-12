@@ -44,7 +44,7 @@ uint4 GetAabb(float2 v0, float2 v1, float2 v2);
 [numthreads(GROUP_DIMs)]
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 {
-	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(64, 1, 1) /*G_DISPATCH_DIMS*/);
+	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(24, 1, 1) /*G_DISPATCH_DIMS*/);
 	if (globalThreadId >= triangleCount)
 		return;
 

@@ -88,7 +88,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 		//groupCache[groupIndex] = (FragData)0;
 		while (triIndex < triangleCount)
 		{
-			bool binMask = G_TRIANGLE_BIN_BUFFER.Load((triIndex * BIN_UINT_COUNT + binIdx / 32u) * 4) & (1 << (32u - binIdx % 32u));
+			bool binMask = G_TRIANGLE_BIN_BUFFER.Load((triIndex * BIN_UINT_COUNT + binIdx / 32u) * 4) & (1 << (binIdx % 32u));
 
 			if (binMask)
 			{
@@ -134,7 +134,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 				float2 pixelOffset = float2(screenPixelCoord - aabb4.xy);
 				float3 cy = baseCy + float3(triData.edgeEq[1], triData.edgeEq[3], triData.edgeEq[5]) * pixelOffset.y;
 				float3 cx = cy + float3(triData.edgeEq[0], triData.edgeEq[2], triData.edgeEq[4]) * pixelOffset.x;
-				if (cx.x >= 0 && cx.y >= 0 && cx.z >= 0)
+				if (all(cx >= 0.f))
 				{
 					const float3 weights = cx * triData.invArea;
 					const float z = 1.f / dot(1.f / float3(v0.position.z, v1.position.z, v2.position.z), weights);
