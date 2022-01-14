@@ -105,7 +105,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 					float diffuseStrength = saturate(dot(normal, -lightDir)) * lightIntensity;
 					diffuseStrength /= PI;
 
-					g_RenderTarget[uint2(x, y)] = float4(float3(0.5f, 0.5f, 0.5f) * diffuseStrength, 1.f);
+					g_RenderTarget[uint2(x, y)] = float4(float3(0.5f, 0.5f, 0.5f), 1.f);
 				}
 			}
 		}

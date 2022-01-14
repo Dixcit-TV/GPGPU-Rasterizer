@@ -125,7 +125,7 @@ namespace CompuRaster
 		const UINT tileStride = 4 * 8; 
 		D3D11_BUFFER_DESC tileBufferDesc{ };
 		tileBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		tileBufferDesc.ByteWidth = elemCount * tileStride; // 11mill + so no overflow, and close to 12 MB
+		tileBufferDesc.ByteWidth = elemCount * tileStride;
 		tileBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 		tileBufferDesc.CPUAccessFlags = 0;
 		tileBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
@@ -262,7 +262,7 @@ namespace CompuRaster
 		ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, m_pTileSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
 		pdeviceContext->CSSetShaderResources(0, 4, fineSrvs);
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, &m_pTileCounterUAV, nullptr);
-		pdeviceContext->Dispatch(240, 135, 1);
+		pdeviceContext->Dispatch(240, 144, 1);
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
 		ID3D11ShaderResourceView* nullSrvs4[]{ nullptr, nullptr, nullptr, nullptr };
 		pdeviceContext->CSSetShaderResources(0, 4, nullSrvs4);

@@ -9,7 +9,7 @@
 #define BIN_COUNT (BINNING_DIMS.x * BINNING_DIMS.y)
 
 #define GROUP_X 32
-#define GROUP_Y 1
+#define GROUP_Y 32
 #define THREAD_COUNT (GROUP_X * GROUP_Y)
 #define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
@@ -69,7 +69,9 @@ void main(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID) //
 		{
 			const uint2 aabb_16 = G_RASTER_DATA[triIndex].aabb;
 			const uint4 triAabb = uint4(aabb_16.x >> 16, aabb_16.x & 0xffff, aabb_16.y >> 16, aabb_16.y & 0xffff);
-			uint4 clampedAabb = (clamp(triAabb, binAabb.xyxy, binAabb.zwzw) - binAabb.xyxy) / TILE_SIZE.xyxy;
+			uint4 clampedAabb = clamp(triAabb, binAabb.xyxy, binAabb.zwzw) - binAabb.xyxy;
+			clampedAabb.xy = clampedAabb.xy / TILE_SIZE;
+			clampedAabb.zw = ceil(clampedAabb.zw / (float2)TILE_SIZE);
 			G_TILE_BUFFER[binDataIdx] = GetCoverage(clampedAabb, BIN_SIZE);
 		}
 		else
@@ -91,7 +93,7 @@ uint2x4 GetCoverage(uint4 clampedAabb, uint2 binSize)
 		}
 	}
 
-	return uint2x4(coverageMask[0], coverageMask[1], coverageMask[2], coverageMask[3], coverageMask[4], coverageMask[5], coverageMask[6], coverageMask[7]);
+	return uint2x4( coverageMask[0], coverageMask[1], coverageMask[2], coverageMask[3], coverageMask[4], coverageMask[5], coverageMask[6], coverageMask[7]);
 }
 
 uint2x4 GetCoverageWithTests(RasterData triData, uint4 clampedAabb, uint2 binSize)

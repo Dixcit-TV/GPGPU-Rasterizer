@@ -98,28 +98,33 @@ void mainCompuRaster(const Window& window, Camera& camera)
 	CompuRaster::CompuRenderer dcRenderer{};
 	dcRenderer.Initialize(window);
 
-	//std::vector<DirectX::XMFLOAT3> positions{};
-	//std::vector<DirectX::XMFLOAT3> normals{};
+	std::vector<DirectX::XMFLOAT3> positions{};
+	std::vector<DirectX::XMFLOAT3> normals{};
 	std::vector<DirectX::XMFLOAT2> uvs{};
-	//std::vector<uint32_t> indices;
+	std::vector<uint32_t> indices;
 
-	std::vector positions{
-		DirectX::XMFLOAT3{0.f, 10.f, 0.f}
-		, DirectX::XMFLOAT3{10.f, -10.f, 0.f}
-		, DirectX::XMFLOAT3{-10.f, -10.f, 0.f}
-		, DirectX::XMFLOAT3{14.f, 10.f, 5.f}
-	};
+	//std::vector positions{
+	//	DirectX::XMFLOAT3{0.f, 10.f, 0.f}
+	//	, DirectX::XMFLOAT3{10.f, -10.f, 0.f}
+	//	, DirectX::XMFLOAT3{-10.f, -10.f, 0.f}
+	//	, DirectX::XMFLOAT3{14.f, 10.f, 5.f}
+	//	, DirectX::XMFLOAT3{-20.f, 20.f, -5.f}
+	//	, DirectX::XMFLOAT3{0.f, 0.f, -5.f}
 
-	std::vector normals{
-	DirectX::XMFLOAT3{0.f, 0.f, -1.f}
-	, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
-	, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
-	, DirectX::XMFLOAT3{0.f, 0.7071f, -0.7071f}
-	};
+	//};
 
-	std::vector<uint32_t> indices{ 0, 1, 2, 0, 3, 1 };
+	//std::vector normals{
+	//DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//, DirectX::XMFLOAT3{0.f, 0.f, -1.f}
+	//};
 
-	//ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
+	//std::vector<uint32_t> indices{ 0, 1, 2, 0, 3, 1, 4, 0, 2, 4, 3, 0, 2, 5, 1 };
+
+	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
 #if defined(CUSTOM_RENDER_NAIVE)
 	CompuRaster::Mesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	CompuRaster::NaiveMaterial mat{ dcRenderer.GetDevice(), L"./Resources/SoftwareShader/TestPipeline.hlsl" };

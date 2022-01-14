@@ -7,7 +7,7 @@
 #define BIN_TILE_COUNT (BIN_SIZE.x * BIN_SIZE.y)
 #define BIN_PIXEL_SIZE (BIN_SIZE * TILE_SIZE)
 #define BINNING_DIMS uint2(ceil(VIEWPORT_WIDTH / BIN_PIXEL_SIZE.x), ceil(VIEWPORT_HEIGHT / BIN_PIXEL_SIZE.y))
-#define TILING_DIMS uint2(ceil(VIEWPORT_WIDTH / TILE_SIZE.x), ceil(VIEWPORT_HEIGHT / TILE_SIZE.y))
+#define TILING_DIMS (BINNING_DIMS * BIN_SIZE)
 #define BIN_COUNT (BINNING_DIMS.x * BINNING_DIMS.y)
 #define TILE_COUNT (TILING_DIMS.x * TILING_DIMS.y)
 
@@ -63,13 +63,12 @@ RWByteAddressBuffer G_TILE_COUNTER: register(u2);
 groupshared uint GroupBatch[THREAD_COUNT];
 groupshared uint GroupCoverage[THREAD_COUNT][2];
 groupshared uint GroupTile;
-//groupshared uint Grou;
 groupshared uint GroupMask[2];
 
 [numthreads(GROUP_DIMs)]
-void main(uint threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
+void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID, int3 groupId : SV_GroupID)
 {
-	const uint loopCount = 2;/*ceil(triangleCount / (float)THREAD_COUNT);*/
+	const uint loopCount = ceil(triangleCount / (float)THREAD_COUNT);
 	if (threadId == 0)
 	{
 		G_TILE_COUNTER.InterlockedAdd(0, 1, GroupTile);
@@ -78,7 +77,7 @@ void main(uint threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 
 	GroupMemoryBarrierWithGroupSync();
 
-	uint tileIdx = GroupTile;
+	uint tileIdx = groupId.x + groupId.y * 240;//GroupTile;
 	if (tileIdx >= TILE_COUNT)
 		return;
 
@@ -98,40 +97,51 @@ void main(uint threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 	while (loop < loopCount)
 	{
 		++loop;
-		uint batchCount = 0;
-		//while (batchCount < THREAD_COUNT)
-		//{
+		int batchCount = 0;
+		uint count = 0;
+		do {
+			count = 0;
+			if (threadId == 0)
+			{
+				GroupMask[0] = GroupMask[1] = 0;
+			}
+			GroupMemoryBarrierWithGroupSync();
+
 			uint triMask = 0;
 			if (triIndex < triangleCount)
 			{
 				const uint binDataIdx = BIN_COUNT * triIndex + binIdx;
 				const uint2x4 binMask = G_TILE_BUFFER[binDataIdx];
-				const uint offset = (binTileId % 128) / 32;
-				triMask = binMask[binTileId / 128][offset] & (1 << (offset % 32));
+				const uint bitIdx = (binTileId % 128);
+				triMask = (binMask[binTileId / 128][bitIdx / 32] & (1 << (bitIdx % 32))) != 0;
+				//triMask = 1;
 			}
-			//GroupMask[groupThreadId.y] = 0;
 			InterlockedOr(GroupMask[groupThreadId.y], triMask << groupThreadId.x);
 			GroupMemoryBarrierWithGroupSync();
 
 			if (triMask)
 			{
-				uint cacheId = batchCount + countbits(GroupMask[groupThreadId.y] >> (31 - groupThreadId.x)) + groupThreadId.y > 0 * countbits(GroupMask[0]);
+				uint cacheId = batchCount;
+				for (int idx = 0; idx < groupThreadId.y; ++idx)
+					cacheId += countbits(GroupMask[idx]);
+
+				cacheId += countbits(GroupMask[groupThreadId.y] << (31 - groupThreadId.x)) - 1;
 
 				if (cacheId < THREAD_COUNT)
 					GroupBatch[cacheId] = triIndex;
 			}
 
-			uint count = countbits(GroupMask[0]) + countbits(GroupMask[1]);
+			count = countbits(GroupMask[0]) + countbits(GroupMask[1]);
 			batchCount += count;
 			triIndex += THREAD_COUNT;
 			GroupMemoryBarrierWithGroupSync();
 			//GroupMask[groupThreadId.y] = 0;
-		//}
+		} while (batchCount < THREAD_COUNT && count != 0);
 
-		//triIndex -= max(batchCount - THREAD_COUNT, 0);
+		triIndex -= max(batchCount - THREAD_COUNT, 0);
 		batchCount = min(batchCount, THREAD_COUNT);
 
-		uint covMask[2] = { 0, 0};
+		uint covMask[2] = { 0, 0 };
 		if (threadId < batchCount)
 		{
 			const uint processId = GroupBatch[threadId];
@@ -163,13 +173,12 @@ void main(uint threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 		GroupCoverage[threadId] = covMask;
 		GroupMemoryBarrierWithGroupSync();
 
-		for (uint cacheIdx = 0; cacheIdx < batchCount; ++cacheIdx)
+		for (int cacheIdx = 0; cacheIdx < batchCount; ++cacheIdx)
 		{
 			//uint triIndex = tri[groupThread.y][cacheIdx];
 			if (GroupCoverage[cacheIdx][groupThreadId.y] & 1 << groupThreadId.x)
 				color = float4(float3(0.5f, 0.5f, 0.5f), 1.f);
 		}
-		GroupMemoryBarrierWithGroupSync();
 	}
 
 	G_RENDER_TARGET[pixel] = color;
