@@ -50,6 +50,7 @@ namespace CompuRaster
 		ID3D11UnorderedAccessView* m_pTileUAV = nullptr;
 
 		ID3D11Buffer* m_pBinCounter = nullptr;
+		ID3D11ShaderResourceView* m_pBinCounterSRV = nullptr;
 		ID3D11UnorderedAccessView* m_pBinCounterUAV = nullptr;
 
 		ID3D11Buffer* m_pTileCounter = nullptr;

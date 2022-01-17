@@ -9,7 +9,7 @@
 #define BIN_COUNT (BINNING_DIMS.x * BINNING_DIMS.y)
 
 #define GROUP_X 32
-#define GROUP_Y 32
+#define GROUP_Y 16
 #define THREAD_COUNT (GROUP_X * GROUP_Y)
 #define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
@@ -35,21 +35,23 @@ struct RasterData
 StructuredBuffer<RasterData> G_RASTER_DATA;
 RWByteAddressBuffer G_BIN_BUFFER : register(u2);
 
-groupshared uint GroupBatch[THREAD_COUNT];
+groupshared uint GroupBatchTri[THREAD_COUNT];
+groupshared uint4 GroupBatchAabb[THREAD_COUNT];
 
 [numthreads(GROUP_DIMs)]
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 {
-	const uint batchSize = min(ceil(triangleCount / 24.f), THREAD_COUNT);
-	const uint batchOffset = batchSize * 24;
+	const uint batchSize = ceil(triangleCount / 16.f);
+	const uint loopCount = ceil(batchSize / (float)THREAD_COUNT);
 	const uint batchStart = batchSize * dispatchID.x;
-	const uint loopCount = ceil((triangleCount / batchSize) / 24.f);
+	const uint2 binDim = uint2(groupIndex % BINNING_DIMS.x, groupIndex / BINNING_DIMS.x);
+	const uint binDataIdx = (batchSize + 1) * dispatchID.x + groupIndex * (batchSize + 1) * 16;
 
+	uint binTriCount = 0;
+	uint triIdx = batchStart + groupIndex;
 	for (uint loop = 0; loop < loopCount; ++loop)
 	{
-		uint triIdx = batchStart + loop * batchOffset + groupIndex;
-
-		if (triIdx < triangleCount)
+		if (triIdx < triangleCount && (triIdx - batchStart) < batchSize)
 		{
 			const RasterData triData = G_RASTER_DATA[triIdx];
 			if (!triData.isClipped)
@@ -57,15 +59,35 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 				uint4 binAabb = uint4(triData.aabb.x >> 16, triData.aabb.x & 0xffff, triData.aabb.y >> 16, triData.aabb.y & 0xffff);
 				binAabb.xy /= BIN_PIXEL_SIZE;
 				binAabb.zw = ceil(binAabb.zw / (float2)BIN_PIXEL_SIZE);
-				for (uint x = binAabb.x; x < binAabb.z; ++x)
+				GroupBatchTri[groupIndex] = triIdx;
+				GroupBatchAabb[groupIndex] = binAabb;
+			}
+			else
+				GroupBatchTri[groupIndex] = -1;
+		}
+		else
+			GroupBatchTri[groupIndex] = -1;
+
+		GroupMemoryBarrierWithGroupSync();
+		triIdx += THREAD_COUNT;
+
+		if (groupIndex < BIN_COUNT)
+		{
+			for (uint idx = 0; idx < batchSize; ++idx)
+			{
+				uint triId = GroupBatchTri[idx];
+				uint4 aabb = GroupBatchAabb[idx];
+				if (triId != -1 
+					&& aabb.x <= binDim.x && aabb.z >= binDim.x
+					&& aabb.y <= binDim.y && aabb.w >= binDim.y)
 				{
-					for (uint y = binAabb.y; y < binAabb.w; ++y)
-					{
-						uint binIdx = x + BINNING_DIMS.x * y + BIN_COUNT * triIdx;
-						G_BIN_BUFFER.Store(binIdx * 4, 1);
-					}
+					G_BIN_BUFFER.Store((binDataIdx + 1 + binTriCount) * 4, triId);
+					++binTriCount;
 				}
 			}
 		}
+		GroupMemoryBarrierWithGroupSync();
 	}
+
+	G_BIN_BUFFER.Store(binDataIdx * 4, binTriCount);
 }

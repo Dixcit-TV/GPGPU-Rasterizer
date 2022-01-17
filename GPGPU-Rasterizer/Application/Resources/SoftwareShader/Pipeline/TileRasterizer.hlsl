@@ -9,7 +9,7 @@
 #define BIN_COUNT (BINNING_DIMS.x * BINNING_DIMS.y)
 
 #define GROUP_X 32
-#define GROUP_Y 32
+#define GROUP_Y 16
 #define THREAD_COUNT (GROUP_X * GROUP_Y)
 #define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
@@ -32,11 +32,17 @@ struct RasterData
 	uint isClipped;
 };
 
+struct BinData
+{
+	uint2x4 coverage;
+	uint triIdx;
+};
+
 ByteAddressBuffer G_BIN_BUFFER : register(t0);
 StructuredBuffer<RasterData> G_RASTER_DATA : register(t1);
 
 RWByteAddressBuffer G_BIN_COUNTER : register(u2);
-RWStructuredBuffer<uint2x4> G_TILE_BUFFER : register(u3); // 3D array binCountX * binCountY * triangleCount : testing with 15 * 9 * 11k
+RWStructuredBuffer<BinData> G_TILE_BUFFER : register(u3); // 3D array binCountX * binCountY * triangleCount : testing with 15 * 9 * 11k
 
 uint2x4 GetCoverage(uint4 clampedAabb, uint2 binSize);
 uint2x4 GetCoverageWithTests(RasterData triData, uint4 clampedAabb, uint2 binSize);
@@ -46,39 +52,69 @@ groupshared uint GroupBin[GROUP_Y]; // 16 * uint, store the the bin ID the wrap 
 [numthreads(GROUP_DIMs)] // 32, 16, 1
 void main(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID) // process 1 bin per wrap, for 16 wraps, with enough dispatch
 {
-	if (groupThreadId.x == 0)
-	{
-		G_BIN_COUNTER.InterlockedAdd(0, 1, GroupBin[groupThreadId.y]);
-	}
+	const uint queueCount = 16;
+	const uint batchSize = ceil(triangleCount / (float)queueCount);
 
-	GroupMemoryBarrierWithGroupSync();
+	//if (groupThreadId.x == 0)
+	//{
+	//	G_BIN_COUNTER.InterlockedAdd(0, 1, GroupBin[groupThreadId.y]);
+	//}
 
-	uint binIdx = GroupBin[groupThreadId.y];
+	//GroupMemoryBarrierWithGroupSync();
+
+	uint binIdx = (groupId.y * 15 + groupId.x) * GROUP_Y + groupThreadId.y /*GroupBin[groupThreadId.y]*/;
 	if (binIdx >= BIN_COUNT) // BIN_COUNT = 15 * 9
 		return;
+
+	uint tileDataStart = binIdx * batchSize * queueCount;
+	uint tileDataIdx = 0;
+	uint queueDataStart = binIdx * (batchSize + 1) * queueCount;
+	uint triCount = G_BIN_BUFFER.Load(queueDataStart * 4);
+	uint totalCount = triCount;
+	uint queueId = 0;
 
 	uint4 binAabb;
 	binAabb.xy = uint2(binIdx % BINNING_DIMS.x, binIdx / BINNING_DIMS.x) * BIN_PIXEL_SIZE; // BIN_PIXEL_SIZE uint2(128, 128)
 	binAabb.zw = binAabb.xy + BIN_PIXEL_SIZE;
-	uint triIndex = groupThreadId.x;
+	uint dataIndex = tileDataIdx = groupThreadId.x;
 
-	while (triIndex < triangleCount)
+	for(;;)
 	{
-		uint binDataIdx = BIN_COUNT * triIndex + binIdx;
-		if (G_BIN_BUFFER.Load(binDataIdx * 4))
+		if (dataIndex < triCount)
 		{
-			const uint2 aabb_16 = G_RASTER_DATA[triIndex].aabb;
-			const uint4 triAabb = uint4(aabb_16.x >> 16, aabb_16.x & 0xffff, aabb_16.y >> 16, aabb_16.y & 0xffff);
-			uint4 clampedAabb = clamp(triAabb, binAabb.xyxy, binAabb.zwzw) - binAabb.xyxy;
-			clampedAabb.xy = clampedAabb.xy / TILE_SIZE;
-			clampedAabb.zw = ceil(clampedAabb.zw / (float2)TILE_SIZE);
-			G_TILE_BUFFER[binDataIdx] = GetCoverage(clampedAabb, BIN_SIZE);
+			const uint tri = G_BIN_BUFFER.Load((queueDataStart + 1 + dataIndex) * 4);
+			const uint2 aabb_16 = G_RASTER_DATA[tri].aabb;
+			uint4 triAabb = uint4(aabb_16.x >> 16, aabb_16.x & 0xffff, aabb_16.y >> 16, aabb_16.y & 0xffff);
+			triAabb = clamp(triAabb, binAabb.xyxy, binAabb.zwzw) - binAabb.xyxy;
+			triAabb.xy = triAabb.xy / TILE_SIZE;
+			triAabb.zw = ceil(triAabb.zw / (float2)TILE_SIZE);
+			BinData data = (BinData)0;
+			data.coverage = GetCoverage(triAabb, BIN_SIZE);
+			data.triIdx = tri;
+			G_TILE_BUFFER[tileDataStart + tileDataIdx] = data;
+		}
+
+		if (dataIndex >= triCount)
+		{
+			++queueId;
+			if (queueId >= queueCount)
+				break;
+
+			queueDataStart += batchSize + 1;
+			dataIndex -= triCount;
+			tileDataIdx = totalCount + dataIndex;
+			triCount = G_BIN_BUFFER.Load(queueDataStart * 4);
+			totalCount += triCount;
 		}
 		else
-			G_TILE_BUFFER[binDataIdx] = 0;
-
-		triIndex += GROUP_X; // GROUP_X: 32
+		{
+			dataIndex += GROUP_X;
+			tileDataIdx += GROUP_X;
+		}
 	}
+
+	if (groupThreadId.x == 0)
+		G_BIN_COUNTER.Store(binIdx * 4, totalCount);
 }
 
 uint2x4 GetCoverage(uint4 clampedAabb, uint2 binSize)

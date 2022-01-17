@@ -30,6 +30,7 @@ namespace CompuRaster
 		Helpers::SafeRelease(m_pTileUAV);
 
 		Helpers::SafeRelease(m_pBinCounter);
+		Helpers::SafeRelease(m_pBinCounterSRV);
 		Helpers::SafeRelease(m_pBinCounterUAV);
 
 		Helpers::SafeRelease(m_pTileCounter);
@@ -82,10 +83,11 @@ namespace CompuRaster
 		if (FAILED(res))
 			return;
 
-		// Hard code for now but matches the 16*16 tile bin, for 8*8 pixel tiles, full HD resolution (ceil(1920.f / (16 * 8)), ceil(1080.f / (16 * 8)))
+		const UINT dispatchCount = 16;
+		const UINT batchSize = static_cast<UINT>(ceil(static_cast<float>(triangleCount) / static_cast<float>(dispatchCount)));
+		const UINT queueSize = dispatchCount * batchSize;
 		const UINT binCount{ 15 * 9 };
-		// I am using the vehicle from graphic programming 1 so a bit over 11k triangles -> 1,485,000+ elements
-		UINT elemCount = binCount * triangleCount; // triangleCount = 11638
+		UINT elemCount = binCount * (queueSize + dispatchCount); //Add 1 UINT to batch size to store the count of overlapping triangle
 
 #pragma region INPUT_BUFFER
 		D3D11_BUFFER_DESC binBufferDesc{};
@@ -122,7 +124,8 @@ namespace CompuRaster
 #pragma endregion
 
 		// Ouput buffer structure is a uint2x4, so 8 * 4 bytes stride, used as a bit mask for the 16*16 tiles (256 bits, 256 tiles)
-		const UINT tileStride = 4 * 8; 
+		elemCount = binCount * queueSize;
+		const UINT tileStride = 4 * (8 + 1); 
 		D3D11_BUFFER_DESC tileBufferDesc{ };
 		tileBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 		tileBufferDesc.ByteWidth = elemCount * tileStride;
@@ -173,17 +176,30 @@ namespace CompuRaster
 		D3D11_UNORDERED_ACCESS_VIEW_DESC counterUavDesc{};
 		counterUavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 		counterUavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-		counterUavDesc.Buffer.Flags = D3D11_BUFFEREX_SRV_FLAG_RAW;
+		counterUavDesc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
 		counterUavDesc.Buffer.FirstElement = 0;
 		counterUavDesc.Buffer.NumElements = 1;
 		res = pdevice->CreateUnorderedAccessView(m_pTileCounter, &counterUavDesc, &m_pTileCounterUAV);
 		if (FAILED(res))
 			return;
 
-		res = pdevice->CreateBuffer(&counterDesc, &counterData, &m_pBinCounter);
+		counterDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+		counterDesc.ByteWidth = binCount * 4;
+		res = pdevice->CreateBuffer(&counterDesc, nullptr, &m_pBinCounter);
 		if (FAILED(res))
 			return;
 
+		D3D11_SHADER_RESOURCE_VIEW_DESC binCounterViewDesc{ };
+		binCounterViewDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+		binCounterViewDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+		binCounterViewDesc.BufferEx.FirstElement = 0;
+		binCounterViewDesc.BufferEx.Flags = D3D11_BUFFEREX_SRV_FLAG_RAW;
+		binCounterViewDesc.BufferEx.NumElements = binCount;
+		res = pdevice->CreateShaderResourceView(m_pBinCounter, &binCounterViewDesc, &m_pBinCounterSRV);
+		if (FAILED(res))
+			return;
+
+		counterUavDesc.Buffer.NumElements = binCount;
 		res = pdevice->CreateUnorderedAccessView(m_pBinCounter, &counterUavDesc, &m_pBinCounterUAV);
 		if (FAILED(res))
 			return;
@@ -236,7 +252,7 @@ namespace CompuRaster
 		pdeviceContext->CSSetShader(m_pBinningShader->GetShader(), nullptr, 0);
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, &m_pBinUAV, nullptr);
 		pdeviceContext->CSSetShaderResources(0, 1, &m_pRasterDataSRV);
-		pdeviceContext->Dispatch(24, 1, 1);
+		pdeviceContext->Dispatch(16, 1, 1);
 
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
 		ID3D11ShaderResourceView* nullSrvs[]{ nullptr };
@@ -259,17 +275,17 @@ namespace CompuRaster
 		//FINE SHADER
 		pdeviceContext->CSSetShader(m_pFineShader->GetShader(), nullptr, 0);
 
-		ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, m_pTileSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
-		pdeviceContext->CSSetShaderResources(0, 4, fineSrvs);
+		ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, m_pTileSRV, m_pBinCounterSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
+		pdeviceContext->CSSetShaderResources(0, 5, fineSrvs);
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, &m_pTileCounterUAV, nullptr);
 		pdeviceContext->Dispatch(240, 144, 1);
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
-		ID3D11ShaderResourceView* nullSrvs4[]{ nullptr, nullptr, nullptr, nullptr };
-		pdeviceContext->CSSetShaderResources(0, 4, nullSrvs4);
+		ID3D11ShaderResourceView* nullSrvs5[]{ nullptr, nullptr, nullptr, nullptr, nullptr };
+		pdeviceContext->CSSetShaderResources(0, 5, nullSrvs5);
 
 		pdeviceContext->ClearUnorderedAccessViewUint(m_pTileCounterUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
 		pdeviceContext->ClearUnorderedAccessViewUint(m_pBinCounterUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
-		pdeviceContext->ClearUnorderedAccessViewUint(m_pBinUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
+		//pdeviceContext->ClearUnorderedAccessViewUint(m_pBinUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
 		//pdeviceContext->ClearUnorderedAccessViewUint(m_pBinUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
 	}
 }
