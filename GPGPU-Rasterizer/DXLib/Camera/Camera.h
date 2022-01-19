@@ -4,7 +4,7 @@
 class Camera
 {
 public:
-	explicit Camera(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& forward = DirectX::XMFLOAT3{ 0.f, 0.f, 1.f }, float aspectRatio = 16.f/9.f, float fovDeg = 45.f, float nearPlane = 0.1f, float farPlane = FLT_MAX);
+	explicit Camera(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& forward = DirectX::XMFLOAT3{ 0.f, 0.f, 1.f }, float aspectRatio = 16.f/9.f, float fovDeg = 45.f, float nearPlane = 0.1f, float farPlane = 1000000);
 
 	const DirectX::XMFLOAT4X4& GetView() const { return m_ViewMatrix; }
 	const DirectX::XMFLOAT4X4& GetViewInverse() const { return m_ViewInvMatrix; }

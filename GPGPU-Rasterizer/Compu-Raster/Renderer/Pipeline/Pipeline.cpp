@@ -207,10 +207,13 @@ namespace CompuRaster
 
 	void Pipeline::Dispatch(ID3D11DeviceContext* pdeviceContext, CompuMesh* pmesh, Camera* pcamera) const
 	{
+		const UINT vCount = pmesh->GetVertexCount();
+		const UINT triCount = pmesh->GetTriangleCount();
+
 		pmesh->SetupDrawInfo(pcamera, pdeviceContext);
 		ID3D11UnorderedAccessView* outUAV{ pmesh->GetVertexOutBufferUAV() };
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, &outUAV, nullptr);
-		pdeviceContext->Dispatch(64, 1, 1);
+		pdeviceContext->Dispatch(static_cast<UINT>(ceil(vCount / 1024.f)), 1, 1);
 		ID3D11UnorderedAccessView* nullUav[] = { nullptr };
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
 
@@ -220,7 +223,7 @@ namespace CompuRaster
 
 		ID3D11ShaderResourceView* geoSrvs[]{ pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
 		pdeviceContext->CSSetShaderResources(0, 2, geoSrvs);
-		pdeviceContext->Dispatch(24, 1, 1);
+		pdeviceContext->Dispatch(static_cast<UINT>(ceil(triCount / 1024.f)), 1, 1);
 
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
 		ID3D11ShaderResourceView* nullSrvs2[]{ nullptr, nullptr };
@@ -266,7 +269,7 @@ namespace CompuRaster
 
 		ID3D11ShaderResourceView* tileSrvs[]{ m_pBinSRV, m_pRasterDataSRV };
 		pdeviceContext->CSSetShaderResources(0, 2, tileSrvs);
-		pdeviceContext->Dispatch(15, 9, 1);
+		pdeviceContext->Dispatch(15, 1, 1);
 
 		ID3D11UnorderedAccessView* nullUavs2[]{ nullptr, nullptr };
 		pdeviceContext->CSSetUnorderedAccessViews(2, 2, nullUavs2, nullptr);

@@ -27,6 +27,7 @@ namespace CompuRaster
 		ID3D11UnorderedAccessView* GetVertexOutBufferUAV() const { return m_VertexOutBufferUAV; }
 
 		UINT GetIndexCount() const { return static_cast<UINT>(std::size(m_Indices)); }
+		UINT GetTriangleCount() const { return GetIndexCount() / 3; }
 		UINT GetVertexCount() const { return static_cast<UINT>(std::size(m_VertexPositions)); }
 
 	private:

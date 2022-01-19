@@ -40,7 +40,7 @@ struct Vertex_Out
 struct RasterData
 {
 	float edgeEq[9];
-	float3 pad;
+	float3 invZ;
 	uint2 aabb;
 	float invArea;
 	uint isClipped;
@@ -52,25 +52,36 @@ struct BinData
 	uint triIdx;
 };
 
+struct CacheData
+{
+	float edgeEq[9];
+	float3 invZ;
+	uint2 startPixel;
+	float invArea;
+	uint triIdx;
+};
+
 StructuredBuffer<RasterData> G_RASTER_DATA : register(t0);
 StructuredBuffer<BinData> G_TILE_BUFFER : register(t1);
 ByteAddressBuffer G_BIN_COUNTER: register(t2);
-//StructuredBuffer<Vertex_Out> G_TRANS_VERTEX_BUFFER;
-//ByteAddressBuffer G_INDEX_BUFFER;
+StructuredBuffer<Vertex_Out> G_TRANS_VERTEX_BUFFER;
+ByteAddressBuffer G_INDEX_BUFFER;
 
 RWTexture2D<unorm float4> G_RENDER_TARGET: register(u0);
 RWTexture2D<float> G_DEPTH_BUFFER : register(u1);
 RWByteAddressBuffer G_TILE_COUNTER: register(u2);
 
-//groupshared uint GroupBatch[GROUP_Y][GROUP_X];
-//groupshared uint2 GroupCoverage[GROUP_Y][GROUP_X];
-//groupshared uint GroupMask[GROUP_Y];
-//groupshared uint GroupTile[GROUP_Y];
-
-groupshared uint GroupBatch[THREAD_COUNT];
-groupshared uint GroupCoverage[THREAD_COUNT][2];
+//groupshared uint GroupBatch[THREAD_COUNT];
+groupshared CacheData GroupBatchData[THREAD_COUNT];
+//groupshared uint GroupCoverage[THREAD_COUNT][2];
+//groupshared float3 GroupWeights[THREAD_COUNT][64];
 groupshared uint GroupTile;
 groupshared uint GroupMask[2];
+
+float Remap(float val, float min, float max)
+{
+	return (val - min) / (max - min);
+}
 
 [numthreads(GROUP_DIMs)]
 void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID, int3 groupId : SV_GroupID)
@@ -104,6 +115,8 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID, i
 
 	uint2 pixel = tileAabb.xy + uint2(threadId % TILE_SIZE.x, threadId / TILE_SIZE.x);
 	unorm float4 color = G_RENDER_TARGET[pixel];
+	float depth = G_DEPTH_BUFFER[pixel];
+	float depth2 = G_DEPTH_BUFFER[pixel];
 
 	uint triIndex = threadId;
 	uint loop = 0;
@@ -127,7 +140,6 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID, i
 				triBinData = G_TILE_BUFFER[binDataStart + triIndex];
 				const uint bitIdx = (binTileId % 128);
 				triMask = (triBinData.coverage[binTileId / 128][bitIdx / 32] & (1 << (bitIdx % 32))) != 0;
-				//triMask = 1;
 			}
 			InterlockedOr(GroupMask[groupThreadId.y], triMask << groupThreadId.x);
 			GroupMemoryBarrierWithGroupSync();
@@ -141,7 +153,18 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID, i
 				cacheId += countbits(GroupMask[groupThreadId.y] << (31 - groupThreadId.x)) - 1;
 
 				if (cacheId < THREAD_COUNT)
-					GroupBatch[cacheId] = triBinData.triIdx;
+				{
+					RasterData rData = G_RASTER_DATA[triBinData.triIdx];
+					uint4 triAabb = uint4(rData.aabb.x >> 16, rData.aabb.x & 0xffff, rData.aabb.y >> 16, rData.aabb.y & 0xffff);
+
+					CacheData data = (CacheData)0;
+					data.startPixel = triAabb.xy;
+					data.edgeEq = rData.edgeEq;
+					data.invArea = rData.invArea;
+					data.triIdx = triBinData.triIdx;
+					data.invZ = rData.invZ;
+					GroupBatchData[cacheId] = data;
+				}
 			}
 
 			count = countbits(GroupMask[0]) + countbits(GroupMask[1]);
@@ -153,75 +176,39 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID, i
 		triIndex -= max(batchCount - THREAD_COUNT, 0);
 		batchCount = min(batchCount, THREAD_COUNT);
 
-		uint covMask[2] = { 0, 0 };
-		if (threadId < batchCount)
-		{
-			const uint processId = GroupBatch[threadId];
-			const RasterData triData = G_RASTER_DATA[processId];
-			uint4 triAabb = uint4(triData.aabb.x >> 16, triData.aabb.x & 0xffff, triData.aabb.y >> 16, triData.aabb.y & 0xffff);
-			uint4 clampedAabb = clamp(triAabb, tileAabb.xyxy, tileAabb.zwzw);
-			//clampedAabb.xy = max(triAabb.xy, tileAabb.xy);
-			//clampedAabb.zw = min(triAabb.zw, tileAabb.zw);
-			//uint4 clampedAabb = tileAabb;
-			uint2 startPixels = clampedAabb.xy;
-
-			clampedAabb -= tileAabb.xyxy;
-			float3 cy = float3(triData.edgeEq[6], triData.edgeEq[7], triData.edgeEq[8]) + float3(triData.edgeEq[1], triData.edgeEq[3], triData.edgeEq[5]) * (startPixels.y - triAabb.y);
-			for (uint y = clampedAabb.y; y < clampedAabb.w; ++y)
-			{
-				float3 cx = cy + float3(triData.edgeEq[0], triData.edgeEq[2], triData.edgeEq[4]) * (startPixels.x - triAabb.x);
-				for (uint x = clampedAabb.x; x < clampedAabb.z; ++x)
-				{
-					if (cx.x >= 0 && cx.y >= 0 && cx.z >= 0)
-					{
-						uint pixelId = y * TILE_SIZE.x + x;
-						covMask[(pixelId / 32)] |= 1 << (pixelId % 32);
-					}
-					cx += float3(triData.edgeEq[0], triData.edgeEq[2], triData.edgeEq[4]);
-				}
-				cy += float3(triData.edgeEq[1], triData.edgeEq[3], triData.edgeEq[5]);
-			}
-		}
-		GroupCoverage[threadId] = covMask;
-		GroupMemoryBarrierWithGroupSync();
-
 		for (int cacheIdx = 0; cacheIdx < batchCount; ++cacheIdx)
 		{
-			//uint triIndex = tri[groupThread.y][cacheIdx];
-			if (GroupCoverage[cacheIdx][groupThreadId.y] & 1 << groupThreadId.x)
-				color = float4(float3(0.5f, 0.5f, 0.5f), 1.f);
+			CacheData process = GroupBatchData[cacheIdx];
+			float3 cy = float3(process.edgeEq[6], process.edgeEq[7], process.edgeEq[8]) + float3(process.edgeEq[1], process.edgeEq[3], process.edgeEq[5]) * ((int)pixel.y - (int)process.startPixel.y);
+			float3 cx = cy + float3(process.edgeEq[0], process.edgeEq[2], process.edgeEq[4]) * ((int)pixel.x - (int)process.startPixel.x);
+			if (all(cx > 0))
+			{
+				uint3 tri = G_INDEX_BUFFER.Load3(process.triIdx * 3 * 4);
+				const Vertex_Out v0 = G_TRANS_VERTEX_BUFFER[tri.x];
+				const Vertex_Out v1 = G_TRANS_VERTEX_BUFFER[tri.y];
+				const Vertex_Out v2 = G_TRANS_VERTEX_BUFFER[tri.z];
+
+				float3 weights = cx * process.invArea;
+				weights.z = 1 - weights.x - weights.y;
+				const float z = 1.f / dot(process.invZ, weights);
+
+				if (z < depth)
+				{
+					depth = z;
+
+					const float w = 1 / dot(float3(v0.position.w, v1.position.w, v2.position.w), weights);
+					float3 n = (v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z) * w;
+					n = normalize(n);
+					float diffuseStrength = saturate(dot(n, -LIGHT_DIR)) * LIGHT_INTENSITY;
+					diffuseStrength /= PI;
+
+					color = float4(float3(0.5f, 0.5f, 0.5f) * diffuseStrength, 1.f);
+				}
+			}
 		}
+		GroupMemoryBarrierWithGroupSync();
 	}
 
 	G_RENDER_TARGET[pixel] = color;
-	//G_RENDER_TARGET[pixel1] = color1;
+	G_DEPTH_BUFFER[pixel] = depth;
 }
-
-//while (triIndex < triangleCount)
-//{
-//	uint tileDataIdx = BIN_COUNT * triIndex * 8 + (tileIdx / 32);
-//	if (G_TILE_BUFFER.Load(tileDataIdx * 4) & (1 << (tileIdx % 32)))
-//	{
-//		const RasterData triData = G_RASTER_DATA[triIndex];
-//		uint4 triAabb = uint4(triData.aabb.x >> 16, triData.aabb.x & 0xffff, triData.aabb.y >> 16, triData.aabb.y & 0xffff);
-//		uint4 clampedAabb;
-//		clampedAabb.xy = max(triAabb.xy, tileAabb.xy);
-//		clampedAabb.zw = min(triAabb.zw, tileAabb.zw);
-//
-//		float3 cy = float3(triData.edgeEq[6], triData.edgeEq[7], triData.edgeEq[8]) + float3(triData.edgeEq[1], triData.edgeEq[3], triData.edgeEq[5]) * (clampedAabb.y - triAabb.y);
-//		for (uint y = clampedAabb.y; y <= clampedAabb.w; ++y)
-//		{
-//			float3 cx = cy + float3(triData.edgeEq[0], triData.edgeEq[2], triData.edgeEq[4]) * (clampedAabb.x - triAabb.x);
-//			for (uint x = clampedAabb.x; x <= clampedAabb.z; ++x)
-//			{
-//				if (cx.x >= 0 && cx.y >= 0 && cx.z >= 0)
-//				{
-//					G_RENDER_TARGET[uint2(x, y)] = float4(float3(0.5f, 0.5f, 0.5f), 1.f);
-//				}
-//				cx += float3(triData.edgeEq[0], triData.edgeEq[2], triData.edgeEq[4]);
-//			}
-//			cy += float3(triData.edgeEq[1], triData.edgeEq[3], triData.edgeEq[5]);
-//		}
-//	}
-//	triIndex += THREAD_COUNT;
-//}

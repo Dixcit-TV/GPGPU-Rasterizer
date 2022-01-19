@@ -26,7 +26,7 @@ cbuffer ObjectInfo : register(b0)
 struct RasterData
 {
 	float edgeEq[9];
-	float3 pad;
+	float3 invZ;
 	uint2 aabb;
 	float invArea;
 	uint isClipped;

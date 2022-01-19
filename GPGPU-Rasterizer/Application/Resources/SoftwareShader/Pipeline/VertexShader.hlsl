@@ -3,8 +3,11 @@
 #define VIEWPORT_WIDTH 1920.f
 #define VIEWPORT_HEIGHT 1080.f
 
-#define GROUP_DIMs 32, 32, 1
+#define GROUP_X 32
+#define GROUP_Y 32
+#define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
+#define THREAD_COUNT (GROUP_X * GROUP_Y)
 
 //cbuffer ViewportInfo
 //{
@@ -57,7 +60,8 @@ void NDCToScreen(inout float4 vertex, float viewportWidth, float viewportHeight)
 [numthreads(GROUP_DIMs)]
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 {
-	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(64, 1, 1) /*G_DISPATCH_DIMS*/);
+	const uint numGroup = ceil(vertexCount / (float)THREAD_COUNT);
+	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(numGroup, 1, 1) /*G_DISPATCH_DIMS*/);
 
 	if (globalThreadId >= vertexCount)
 		return;

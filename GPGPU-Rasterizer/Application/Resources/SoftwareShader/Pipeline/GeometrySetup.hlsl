@@ -4,7 +4,7 @@
 #define GROUP_Y 32
 #define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
-#define GROUP_SIZE GROUP_X * GROUP_Y;
+#define THREAD_COUNT (GROUP_X * GROUP_Y)
 
 #define VIEWPORT_WIDTH 1920.f
 #define VIEWPORT_HEIGHT 1080.f
@@ -31,7 +31,7 @@ ByteAddressBuffer G_INDEX_BUFFER;
 struct RasterData
 {
 	float edgeEq[9];
-	float3 pad;
+	float3 invZ;
 	uint2 aabb;
 	float invArea;
 	uint isClipped;
@@ -44,7 +44,8 @@ uint4 GetAabb(float2 v0, float2 v1, float2 v2);
 [numthreads(GROUP_DIMs)]
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 {
-	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(24, 1, 1) /*G_DISPATCH_DIMS*/);
+	const uint numGroup = ceil(triangleCount / (float)THREAD_COUNT);
+	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(numGroup, 1, 1) /*G_DISPATCH_DIMS*/);
 	if (globalThreadId >= triangleCount)
 		return;
 
@@ -74,7 +75,8 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 		data.edgeEq[8] = data.edgeEq[4] * aabb.x + data.edgeEq[5] * aabb.y + cross2d(v0.xy, v1.xy);
 
 		data.aabb = uint2((aabb.x << 16) | aabb.y, (aabb.z << 16) | aabb.w);
-		data.invArea = 1 / cross2d(v0.xy - v2.xy, v1.xy - v2.xy);
+		data.invArea = 1.f / cross2d(v0.xy - v2.xy, v1.xy - v2.xy);
+		data.invZ = 1 / float3(v0.z, v1.z, v2.z);
 	}
 
 	G_RASTER_DATA[globalThreadId] = data;
