@@ -17,5 +17,5 @@ float4 main(PIXEL_IN input) : SV_TARGET
 	float diffuseStrength = saturate(dot(input.normal, -lightDir)) * lightIntensity;
 	diffuseStrength /= gPi;
 
-	return float4(0.5f, 0.5f, 0.5f, 1.0f);
+	return float4(float3(0.5f, 0.5f, 0.5f) * diffuseStrength, 1.0f);
 }
