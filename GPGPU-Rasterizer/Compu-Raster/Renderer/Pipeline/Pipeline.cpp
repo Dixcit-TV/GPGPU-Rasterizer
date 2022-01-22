@@ -281,7 +281,7 @@ namespace CompuRaster
 		ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, m_pTileSRV, m_pBinCounterSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
 		pdeviceContext->CSSetShaderResources(0, 5, fineSrvs);
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, &m_pTileCounterUAV, nullptr);
-		pdeviceContext->Dispatch(240, 144, 1);
+		pdeviceContext->Dispatch(256, 1, 1);
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
 		ID3D11ShaderResourceView* nullSrvs5[]{ nullptr, nullptr, nullptr, nullptr, nullptr };
 		pdeviceContext->CSSetShaderResources(0, 5, nullSrvs5);
