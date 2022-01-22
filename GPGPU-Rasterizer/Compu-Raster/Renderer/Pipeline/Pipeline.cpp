@@ -269,7 +269,7 @@ namespace CompuRaster
 
 		ID3D11ShaderResourceView* tileSrvs[]{ m_pBinSRV, m_pRasterDataSRV };
 		pdeviceContext->CSSetShaderResources(0, 2, tileSrvs);
-		pdeviceContext->Dispatch(15, 1, 1);
+		pdeviceContext->Dispatch(15, 9, 1);
 
 		ID3D11UnorderedAccessView* nullUavs2[]{ nullptr, nullptr };
 		pdeviceContext->CSSetUnorderedAccessViews(2, 2, nullUavs2, nullptr);

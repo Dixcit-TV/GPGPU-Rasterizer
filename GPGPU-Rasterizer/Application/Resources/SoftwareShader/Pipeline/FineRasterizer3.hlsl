@@ -81,7 +81,7 @@ float Remap(float val, float min, float max)
 }
 
 [numthreads(GROUP_DIMs)]
-void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID, int3 groupId : SV_GroupID)
+void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 {
 	const uint queueCount = 16;
 	const uint batchSize = ceil(triangleCount / (float)queueCount);

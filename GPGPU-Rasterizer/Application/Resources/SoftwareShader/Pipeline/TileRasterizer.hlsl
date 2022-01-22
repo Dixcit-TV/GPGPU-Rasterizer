@@ -9,7 +9,7 @@
 #define BIN_COUNT (BINNING_DIMS.x * BINNING_DIMS.y)
 
 #define GROUP_X 32
-#define GROUP_Y 16
+#define GROUP_Y 4
 #define THREAD_COUNT (GROUP_X * GROUP_Y)
 #define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
@@ -42,19 +42,26 @@ ByteAddressBuffer G_BIN_BUFFER : register(t0);
 StructuredBuffer<RasterData> G_RASTER_DATA : register(t1);
 
 RWByteAddressBuffer G_BIN_COUNTER : register(u2);
-RWStructuredBuffer<BinData> G_TILE_BUFFER : register(u3); // 3D array binCountX * binCountY * triangleCount : testing with 15 * 9 * 11k
+RWStructuredBuffer<BinData> G_TILE_BUFFER : register(u3);
 
 uint2x4 GetCoverage(uint4 clampedAabb, uint2 binSize);
 
-groupshared uint GroupBin[GROUP_Y]; // 16 * uint, store the the bin ID the wrap is processing
+groupshared uint GroupBin;
 
-[numthreads(GROUP_DIMs)] // 32, 16, 1
-void main(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID) // process 1 bin per wrap, for 16 wraps, with enough dispatch
+[numthreads(GROUP_DIMs)]
+void main(int threadId : SV_GroupIndex)
 {
 	const uint queueCount = 16;
 	const uint batchSize = ceil(triangleCount / (float)queueCount);
 
-	uint binIdx = (groupId.y * 15 + groupId.x) * GROUP_Y + groupThreadId.y /*GroupBin[groupThreadId.y]*/;
+	if (threadId == 0)
+	{
+		G_BIN_COUNTER.InterlockedAdd(0, 1, GroupBin);
+	}
+
+	GroupMemoryBarrierWithGroupSync();
+
+	uint binIdx = GroupBin;
 	if (binIdx >= BIN_COUNT) // BIN_COUNT = 15 * 9
 		return;
 
@@ -67,7 +74,7 @@ void main(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID) //
 	uint4 binAabb;
 	binAabb.xy = uint2(binIdx % BINNING_DIMS.x, binIdx / BINNING_DIMS.x) * BIN_PIXEL_SIZE; // BIN_PIXEL_SIZE uint2(128, 128)
 	binAabb.zw = binAabb.xy + BIN_PIXEL_SIZE;
-	uint dataIndex = groupThreadId.x;
+	uint dataIndex = threadId;
 
 	for (;;)
 	{
@@ -84,7 +91,7 @@ void main(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID) //
 			data.triIdx = tri;
 			G_TILE_BUFFER[tileDataStart + totalCount + dataIndex] = data;
 
-			dataIndex += GROUP_X;
+			dataIndex += THREAD_COUNT;
 		}
 		else
 		{
@@ -99,8 +106,10 @@ void main(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID) //
 		}
 	}
 
-	if (groupThreadId.x == 0)
+	if (threadId == 0)
 		G_BIN_COUNTER.Store(binIdx * 4, totalCount);
+
+	GroupMemoryBarrierWithGroupSync();
 }
 
 uint2x4 GetCoverage(uint4 clampedAabb, uint2 binSize)

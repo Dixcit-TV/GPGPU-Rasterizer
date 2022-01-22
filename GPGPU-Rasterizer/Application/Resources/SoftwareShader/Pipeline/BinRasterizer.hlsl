@@ -9,7 +9,7 @@
 #define BIN_COUNT (BINNING_DIMS.x * BINNING_DIMS.y)
 
 #define GROUP_X 32
-#define GROUP_Y 16
+#define GROUP_Y 32
 #define THREAD_COUNT (GROUP_X * GROUP_Y)
 #define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
