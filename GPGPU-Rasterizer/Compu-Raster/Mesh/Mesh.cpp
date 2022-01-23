@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Mesh.h"
 
-#include "Common/Structs.h"
 #include "../Renderer/Pipeline/NaivePipeline/NaiveMaterial.h"
 #include "Camera/Camera.h"
 
@@ -118,7 +117,7 @@ namespace CompuRaster
 			return;
 	}
 
-	void Mesh::SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceContext) const
+	void Mesh::SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceContext, HelperStruct::Dispatch dispatch) const
 	{
 		if (!m_pMaterial)
 			return;
@@ -131,6 +130,7 @@ namespace CompuRaster
 		XMStoreFloat4x4(&worldViewProj, XMLoadFloat4x4(&viewProj));
 		m_pMaterial->SetConstantBuffer<HelperStruct::CameraObjectMatrices>(pdeviceContext, "ObjectMatrices", worldViewProj, world);
 		m_pMaterial->SetConstantBuffer<HelperStruct::LightInfoBuffer>(pdeviceContext, "LightInfo", DirectX::XMFLOAT3{ 0.f, -1.f, 0.f }, 2.f);
+		m_pMaterial->SetConstantBuffer<HelperStruct::Dispatch>(pdeviceContext, "DI_Dimensions", dispatch);
 		m_pMaterial->SetShaders(pdeviceContext, this);
 	}
 }

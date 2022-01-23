@@ -34,5 +34,10 @@ namespace HelperStruct
 		DirectX::XMFLOAT4X4 worldViewProjection{};
 		DirectX::XMFLOAT4X4 world{};
 	};
+
+	struct Dispatch
+	{
+		UINT x, y, z;
+	};
 };
 

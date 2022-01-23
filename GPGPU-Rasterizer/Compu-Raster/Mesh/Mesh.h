@@ -2,6 +2,8 @@
 #include <DirectXMath.h>
 #include <vector>
 
+#include "Common/Structs.h"
+
 class Camera;
 
 namespace CompuRaster
@@ -20,7 +22,7 @@ namespace CompuRaster
 		Mesh& operator=(Mesh&&) noexcept = delete;
 
 		void SetMaterial(ID3D11Device* pdevice, NaiveMaterial* pmaterial);
-		void SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceContext) const;
+		void SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceContext, HelperStruct::Dispatch dispatch) const;
 		ID3D11ShaderResourceView* GetVertexBufferView() const { return m_VertexBufferView; }
 		ID3D11ShaderResourceView* GetIndexBufferView() const { return m_IndexBufferView; }
 

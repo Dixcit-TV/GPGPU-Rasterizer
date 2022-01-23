@@ -148,8 +148,14 @@ namespace CompuRaster
 
 	void CompuRenderer::Draw(Camera* pcamera, Mesh* pmesh) const
 	{
-		pmesh->SetupDrawInfo(pcamera, m_pDxDeviceContext);
-		m_pDxDeviceContext->Dispatch(64, 1, 1);
+		const UINT maxCompDispatch{ D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION };
+		const UINT threadCount{ 1024 };
+		const UINT triangleCount{ pmesh->GetIndexCount() / 3 };
+		const UINT groupCount = static_cast<UINT>(ceil(triangleCount / static_cast<float>(threadCount)));
+		const HelperStruct::Dispatch groupDim = { groupCount % maxCompDispatch, static_cast<UINT>(ceil(groupCount / static_cast<float>(maxCompDispatch))), 1 };
+
+		pmesh->SetupDrawInfo(pcamera, m_pDxDeviceContext, groupDim);
+		m_pDxDeviceContext->Dispatch(groupDim.x, groupDim.z, groupDim.y);
 	}
 
 	void CompuRenderer::DrawPipeline(const Pipeline& pipeline, Camera* pcamera, CompuMesh* pmesh) const

@@ -5,12 +5,6 @@
 #define GROUP_DIMs 32, 32, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
 
-cbuffer ViewportInfo
-{
-	float VI_Width;
-	float VI_Height;
-}
-
 cbuffer DispatchInfo
 {
 	uint3 DI_Dimensions;
@@ -67,7 +61,7 @@ uint4 GetAabb(float2 v0, float2 v1, float2 v2, float viewportWidth, float viewpo
 [numthreads(GROUP_DIMs)]
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 {
-	const uint globalThreadId = FlatenGlobalThreadId(groupIndex, dispatchID, uint3(GROUP_DIMs), uint3(64, 1, 1) /*DI_Dimensions*/);
+	const uint globalThreadId = FlatenGlobalThreadId(groupIndex, dispatchID, uint3(GROUP_DIMs), DI_Dimensions);
 	Vertex_Out v0 = TransformVertexToNDC(g_Vertices[g_Indices[globalThreadId * 3]]);
 	Vertex_Out v1 = TransformVertexToNDC(g_Vertices[g_Indices[globalThreadId * 3 + 1]]);
 	Vertex_Out v2 = TransformVertexToNDC(g_Vertices[g_Indices[globalThreadId * 3 + 2]]);
@@ -90,22 +84,23 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 			float3 weights = float3(cross2d(v2.position.xy - v1.position.xy, pixel - v1.position.xy)
 				, cross2d(v0.position.xy - v2.position.xy, pixel - v2.position.xy)
 				, cross2d(v1.position.xy - v0.position.xy, pixel - v0.position.xy)) * invTriArea;
-			if (weights.x >= 0.f && weights.y >= 0.f && weights.z >= 0.f)
+			if (weights.x >= 0.f && weights.y >= 0.f && weights.z >= 0.f && invTriArea > 0)
 			{
+				weights.z = 1 - weights.x - weights.y;
 				const float z = 1.f / dot(1.f / float3(v0.position.z, v1.position.z, v2.position.z), weights);
 				const float w = 1 / dot(float3(v0.position.w, v1.position.w, v2.position.w), weights);
 
 				const uint uintZ = asuint(z);
-				uint prevZ;
-				InterlockedMin(g_DepthBuffer[uint2(x, y)], asuint(z), prevZ);
-				if (uintZ < prevZ)
+				InterlockedMin(g_DepthBuffer[uint2(x, y)], uintZ);
+				DeviceMemoryBarrier();
+				if (uintZ == g_DepthBuffer[uint2(x, y)])
 				{
 					float3 normal = (v0.normal * v0.position.w * weights.x + v1.normal * v1.position.w * weights.y + v2.normal * v2.position.w * weights.z) * w;
 					normal = normalize(normal);
 					float diffuseStrength = saturate(dot(normal, -lightDir)) * lightIntensity;
 					diffuseStrength /= PI;
 
-					g_RenderTarget[uint2(x, y)] = float4(float3(0.5f, 0.5f, 0.5f), 1.f);
+					g_RenderTarget[uint2(x, y)] = float4(float3(0.5f, 0.5f, 0.5f) * diffuseStrength, 1.f);
 				}
 			}
 		}

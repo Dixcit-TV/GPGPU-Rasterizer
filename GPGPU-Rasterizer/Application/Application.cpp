@@ -17,8 +17,8 @@
 //#define HARDWARE_RENDER
 #define CUSTOM_RENDER
 
-//#define CUSTOM_RENDER_NAIVE
-#define CUSTOM_RENDER_PIPELINE
+#define CUSTOM_RENDER_NAIVE
+//#define CUSTOM_RENDER_PIPELINE
 
 void mainDXRaster(const Window& window, Camera& camera);
 void mainCompuRaster(const Window& window, Camera& camera);
@@ -33,7 +33,10 @@ int wmain(int argc, wchar_t* argv[])
 	wchar_t windowName[]{ TEXT("GPU Rasterizer - Dixcit") };
 	Window wnd{ windowName, 1920u, 1080u };
 	wnd.Init(&WndProc_Implementation);
-	Camera camera{ DirectX::XMFLOAT3{0.f, 0.f, -100.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+	//Camera camera{ DirectX::XMFLOAT3{0.f, 0.f, -100.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+	//Camera camera{ DirectX::XMFLOAT3{0.f, 1.f, -1000.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+	Camera camera{ DirectX::XMFLOAT3{0.f, 1.f, -5.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+
 
 #if defined(HARDWARE_RENDER)
 	mainDXRaster(wnd, camera);
@@ -124,7 +127,7 @@ void mainCompuRaster(const Window& window, Camera& camera)
 
 	//std::vector<uint32_t> indices{ 0, 1, 2, 0, 3, 1, 4, 0, 2, 4, 3, 0, 2, 5, 1 };
 
-	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
+	ObjReader::LoadModel(L"./Resources/Models/fairyforest.obj", positions, normals, uvs, indices);
 #if defined(CUSTOM_RENDER_NAIVE)
 	CompuRaster::Mesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	CompuRaster::NaiveMaterial mat{ dcRenderer.GetDevice(), L"./Resources/SoftwareShader/TestPipeline.hlsl" };

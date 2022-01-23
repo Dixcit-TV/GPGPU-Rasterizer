@@ -27,9 +27,9 @@ void TimeSettings::Update()
 
 	if (m_FPSTimerCount >= frameInterval)
 	{
+		m_FPS = static_cast<unsigned>(static_cast<float>(m_FPSCounter) / m_FPSTimerCount);
 		m_FPSTimerCount -= frameInterval;
-		m_FPS = m_FPSCounter;
-		m_FPSCounter = 0;
+		m_FPSCounter -= m_FPS;
 	}
 }
 

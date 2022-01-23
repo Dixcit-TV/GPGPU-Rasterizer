@@ -200,6 +200,7 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 						n = normalize(n);
 						float diffuseStrength = saturate(dot(n, -LIGHT_DIR)) * LIGHT_INTENSITY;
 						diffuseStrength /= PI;
+						//diffuseStrength = 1;
 
 						color = float4(float3(0.5f, 0.5f, 0.5f) * diffuseStrength, 1.f);
 					}

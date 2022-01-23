@@ -35,7 +35,7 @@ private:
 	unsigned int m_FPSCounter;
 
 	const float FIXED_DELTA_TIME = 0.2f;
-	const float MAX_FRAME_TIME = 0.1f;
+	const float MAX_FRAME_TIME = 30.f;
 	const int FRAME_TIME_MS = 16;
 	const bool USE_FIXED_FRAME_TIME = false;
 };
