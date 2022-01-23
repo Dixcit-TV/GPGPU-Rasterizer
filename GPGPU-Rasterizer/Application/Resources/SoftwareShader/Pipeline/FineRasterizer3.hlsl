@@ -18,7 +18,7 @@
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
 
 #define LIGHT_DIR float3(0.577f, -0.577f, 0.577f)
-#define LIGHT_INTENSITY 2.f
+#define LIGHT_INTENSITY 4.f
 #define PI 3.14159265358979323846f
 
 cbuffer ObjectInfo : register(b0)
@@ -63,9 +63,9 @@ struct CacheData
 
 StructuredBuffer<RasterData> G_RASTER_DATA : register(t0);
 StructuredBuffer<BinData> G_TILE_BUFFER : register(t1);
-ByteAddressBuffer G_BIN_COUNTER: register(t2);
-StructuredBuffer<Vertex_Out> G_TRANS_VERTEX_BUFFER;
-ByteAddressBuffer G_INDEX_BUFFER;
+ByteAddressBuffer G_BIN_TRI_COUNTER : register(t2);
+StructuredBuffer<Vertex_Out> G_TRANS_VERTEX_BUFFER : register(t3);
+ByteAddressBuffer G_INDEX_BUFFER : register(t4);
 
 RWTexture2D<unorm float4> G_RENDER_TARGET: register(u0);
 RWTexture2D<float> G_DEPTH_BUFFER : register(u1);
@@ -73,6 +73,7 @@ RWByteAddressBuffer G_TILE_COUNTER: register(u2);
 
 groupshared CacheData GroupBatchData[THREAD_COUNT];
 groupshared uint GroupTile;
+groupshared uint GroupTriCount;
 groupshared uint GroupMask[2];
 
 float Remap(float val, float min, float max)
@@ -92,6 +93,9 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 		{
 			G_TILE_COUNTER.InterlockedAdd(0, 1, GroupTile);
 			GroupMask[0] = GroupMask[1] = 0;
+
+			const uint binIdx = GroupTile / BIN_TILE_COUNT;
+			GroupTriCount = G_BIN_TRI_COUNTER.Load(binIdx * 4);
 		}
 
 		GroupMemoryBarrierWithGroupSync();
@@ -102,7 +106,11 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 
 		const uint binIdx = tileIdx / BIN_TILE_COUNT;
 		const uint binDataStart = binIdx * batchSize * queueCount;
-		const uint triCount = G_BIN_COUNTER.Load(binIdx * 4);
+		const uint triCount = GroupTriCount;
+		GroupMemoryBarrierWithGroupSync();
+		if (triCount == 0)
+			continue;
+
 		const uint loopCount = ceil(triCount / (float)THREAD_COUNT);
 
 		const uint2 binCoord = uint2(binIdx % BINNING_DIMS.x, binIdx / BINNING_DIMS.x) * BIN_PIXEL_SIZE;
@@ -200,7 +208,6 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 						n = normalize(n);
 						float diffuseStrength = saturate(dot(n, -LIGHT_DIR)) * LIGHT_INTENSITY;
 						diffuseStrength /= PI;
-						//diffuseStrength = 1;
 
 						color = float4(float3(0.5f, 0.5f, 0.5f) * diffuseStrength, 1.f);
 					}

@@ -42,7 +42,8 @@ ByteAddressBuffer G_BIN_BUFFER : register(t0);
 StructuredBuffer<RasterData> G_RASTER_DATA : register(t1);
 
 RWByteAddressBuffer G_BIN_COUNTER : register(u2);
-RWStructuredBuffer<BinData> G_TILE_BUFFER : register(u3);
+RWByteAddressBuffer G_BIN_TRI_COUNTER : register(u3);
+RWStructuredBuffer<BinData> G_TILE_BUFFER : register(u4);
 
 uint2x4 GetCoverage(uint4 clampedAabb, uint2 binSize);
 
@@ -107,7 +108,7 @@ void main(int threadId : SV_GroupIndex)
 	}
 
 	if (threadId == 0)
-		G_BIN_COUNTER.Store(binIdx * 4, totalCount);
+		G_BIN_TRI_COUNTER.Store(binIdx * 4, totalCount);
 
 	GroupMemoryBarrierWithGroupSync();
 }

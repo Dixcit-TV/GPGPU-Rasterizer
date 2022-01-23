@@ -30,8 +30,11 @@ namespace CompuRaster
 		Helpers::SafeRelease(m_pTileUAV);
 
 		Helpers::SafeRelease(m_pBinCounter);
-		Helpers::SafeRelease(m_pBinCounterSRV);
 		Helpers::SafeRelease(m_pBinCounterUAV);
+
+		Helpers::SafeRelease(m_pBinTriCounter);
+		Helpers::SafeRelease(m_pBinTriCounterSRV);
+		Helpers::SafeRelease(m_pBinTriCounterUAV);
 
 		Helpers::SafeRelease(m_pTileCounter);
 		Helpers::SafeRelease(m_pTileCounterUAV);
@@ -87,7 +90,7 @@ namespace CompuRaster
 		const UINT batchSize = static_cast<UINT>(ceil(static_cast<float>(triangleCount) / static_cast<float>(dispatchCount)));
 		const UINT queueSize = dispatchCount * batchSize;
 		const UINT binCount{ 15 * 9 };
-		UINT elemCount = binCount * (queueSize + dispatchCount); //Add 1 UINT to batch size to store the count of overlapping triangle
+		UINT elemCount = binCount * (queueSize + dispatchCount);
 
 #pragma region INPUT_BUFFER
 		D3D11_BUFFER_DESC binBufferDesc{};
@@ -183,9 +186,17 @@ namespace CompuRaster
 		if (FAILED(res))
 			return;
 
+		res = pdevice->CreateBuffer(&counterDesc, nullptr, &m_pBinCounter);
+		if (FAILED(res))
+			return;
+
+		res = pdevice->CreateUnorderedAccessView(m_pBinCounter, &counterUavDesc, &m_pBinCounterUAV);
+		if (FAILED(res))
+			return;
+
 		counterDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
 		counterDesc.ByteWidth = binCount * 4;
-		res = pdevice->CreateBuffer(&counterDesc, nullptr, &m_pBinCounter);
+		res = pdevice->CreateBuffer(&counterDesc, nullptr, &m_pBinTriCounter);
 		if (FAILED(res))
 			return;
 
@@ -195,12 +206,12 @@ namespace CompuRaster
 		binCounterViewDesc.BufferEx.FirstElement = 0;
 		binCounterViewDesc.BufferEx.Flags = D3D11_BUFFEREX_SRV_FLAG_RAW;
 		binCounterViewDesc.BufferEx.NumElements = binCount;
-		res = pdevice->CreateShaderResourceView(m_pBinCounter, &binCounterViewDesc, &m_pBinCounterSRV);
+		res = pdevice->CreateShaderResourceView(m_pBinTriCounter, &binCounterViewDesc, &m_pBinTriCounterSRV);
 		if (FAILED(res))
 			return;
 
 		counterUavDesc.Buffer.NumElements = binCount;
-		res = pdevice->CreateUnorderedAccessView(m_pBinCounter, &counterUavDesc, &m_pBinCounterUAV);
+		res = pdevice->CreateUnorderedAccessView(m_pBinTriCounter, &counterUavDesc, &m_pBinTriCounterUAV);
 		if (FAILED(res))
 			return;
 	}
@@ -264,21 +275,21 @@ namespace CompuRaster
 		//TILE SHADER
 		pdeviceContext->CSSetShader(m_pCoarseShader->GetShader(), nullptr, 0);
 
-		ID3D11UnorderedAccessView* tileUavs[]{ m_pBinCounterUAV, m_pTileUAV };
-		pdeviceContext->CSSetUnorderedAccessViews(2, 2, tileUavs, nullptr);
+		ID3D11UnorderedAccessView* tileUavs[]{ m_pBinCounterUAV, m_pBinTriCounterUAV, m_pTileUAV };
+		pdeviceContext->CSSetUnorderedAccessViews(2, 3, tileUavs, nullptr);
 
 		ID3D11ShaderResourceView* tileSrvs[]{ m_pBinSRV, m_pRasterDataSRV };
 		pdeviceContext->CSSetShaderResources(0, 2, tileSrvs);
 		pdeviceContext->Dispatch(15, 9, 1);
 
-		ID3D11UnorderedAccessView* nullUavs2[]{ nullptr, nullptr };
-		pdeviceContext->CSSetUnorderedAccessViews(2, 2, nullUavs2, nullptr);
+		ID3D11UnorderedAccessView* nullUavs3[]{ nullptr, nullptr, nullptr };
+		pdeviceContext->CSSetUnorderedAccessViews(2, 3, nullUavs3, nullptr);
 		pdeviceContext->CSSetShaderResources(0, 2, nullSrvs2);
 
 		//FINE SHADER
 		pdeviceContext->CSSetShader(m_pFineShader->GetShader(), nullptr, 0);
 
-		ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, m_pTileSRV, m_pBinCounterSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
+		ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, m_pTileSRV, m_pBinTriCounterSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
 		pdeviceContext->CSSetShaderResources(0, 5, fineSrvs);
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, &m_pTileCounterUAV, nullptr);
 		pdeviceContext->Dispatch(256, 1, 1);

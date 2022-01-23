@@ -41,11 +41,12 @@ groupshared uint4 GroupBatchAabb[THREAD_COUNT];
 [numthreads(GROUP_DIMs)]
 void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 {
-	const uint batchSize = ceil(triangleCount / 16.f);
+	const uint queueCount = 16;
+	const uint batchSize = ceil(triangleCount / (float)queueCount);
 	const uint loopCount = ceil(batchSize / (float)THREAD_COUNT);
 	const uint batchStart = batchSize * dispatchID.x;
 	const uint2 binDim = uint2(groupIndex % BINNING_DIMS.x, groupIndex / BINNING_DIMS.x);
-	const uint binDataIdx = (batchSize + 1) * dispatchID.x + groupIndex * (batchSize + 1) * 16;
+	const uint binDataIdx = (batchSize + 1) * dispatchID.x + groupIndex * (batchSize + 1) * queueCount;
 
 	uint binTriCount = 0;
 	uint triIdx = batchStart + groupIndex;

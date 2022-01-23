@@ -76,6 +76,9 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 	uint4 aabb = GetAabb(v0.position.xy, v1.position.xy, v2.position.xy, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
 	const float invTriArea = 1 / cross(v0.position.xyz - v2.position.xyz, v1.position.xyz - v2.position.xyz).z;
+	if (invTriArea <= 0)
+		return;
+
 	for (uint x = aabb.x; x <= aabb.z; ++x)
 	{
 		for (uint y = aabb.y; y <= aabb.w; ++y)
@@ -84,7 +87,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId )
 			float3 weights = float3(cross2d(v2.position.xy - v1.position.xy, pixel - v1.position.xy)
 				, cross2d(v0.position.xy - v2.position.xy, pixel - v2.position.xy)
 				, cross2d(v1.position.xy - v0.position.xy, pixel - v0.position.xy)) * invTriArea;
-			if (weights.x >= 0.f && weights.y >= 0.f && weights.z >= 0.f && invTriArea > 0)
+			if (weights.x >= 0.f && weights.y >= 0.f && weights.z >= 0.f)
 			{
 				weights.z = 1 - weights.x - weights.y;
 				const float z = 1.f / dot(1.f / float3(v0.position.z, v1.position.z, v2.position.z), weights);

@@ -116,6 +116,6 @@ void TriangleMesh::SetupDrawInfo(Camera* pcamera, ID3D11DeviceContext* pdeviceCo
 	XMStoreFloat4x4(&world, DirectX::XMMatrixIdentity());
 	XMStoreFloat4x4(&worldViewProj, XMLoadFloat4x4(&viewProj));
 	m_pMaterial->SetConstantBuffer<HelperStruct::CameraObjectMatrices>(pdeviceContext, "ObjectMatrices", worldViewProj, world);
-	m_pMaterial->SetConstantBuffer<HelperStruct::LightInfoBuffer>(pdeviceContext, "LightInfo", DirectX::XMFLOAT3{ 0.f, -1.f, 0.f }, 2.f);
+	m_pMaterial->SetConstantBuffer<HelperStruct::LightInfoBuffer>(pdeviceContext, "LightInfo", DirectX::XMFLOAT3{ 0.577f, -0.577f, 0.577f }, 4.f);
 	m_pMaterial->SetShaders(pdeviceContext);
 }

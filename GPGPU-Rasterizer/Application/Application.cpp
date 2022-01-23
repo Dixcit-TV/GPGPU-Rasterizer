@@ -17,11 +17,15 @@
 //#define HARDWARE_RENDER
 #define CUSTOM_RENDER
 
-#define CUSTOM_RENDER_NAIVE
-//#define CUSTOM_RENDER_PIPELINE
+//#define CUSTOM_RENDER_NAIVE
+#define CUSTOM_RENDER_PIPELINE_BINNING
 
-void mainDXRaster(const Window& window, Camera& camera);
-void mainCompuRaster(const Window& window, Camera& camera);
+//#define VEHICLE_OBJ
+//#define BUNNY_OBJ
+#define FAIRYFOREST_OBJ
+
+void mainDXRaster(const Window& window, Camera& camera, std::wstring meshPath);
+void mainCompuRaster(const Window& window, Camera& camera, std::wstring meshPath);
 
 LRESULT WndProc_Implementation(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -33,19 +37,27 @@ int wmain(int argc, wchar_t* argv[])
 	wchar_t windowName[]{ TEXT("GPU Rasterizer - Dixcit") };
 	Window wnd{ windowName, 1920u, 1080u };
 	wnd.Init(&WndProc_Implementation);
-	//Camera camera{ DirectX::XMFLOAT3{0.f, 0.f, -100.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
-	//Camera camera{ DirectX::XMFLOAT3{0.f, 1.f, -1000.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+
+#if defined(VEHICLE_OBJ)
+	Camera camera{ DirectX::XMFLOAT3{0.f, 0.f, -100.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+	std::wstring meshPath{ L"./Resources/Models/vehicle.obj" };
+#elif defined(BUNNY_OBJ)
+	Camera camera{ DirectX::XMFLOAT3{0.f, 1.2f, -5.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+	std::wstring meshPath{ L"./Resources/Models/bunny.obj" };
+#elif defined(FAIRYFOREST_OBJ)
 	Camera camera{ DirectX::XMFLOAT3{0.f, 1.f, -5.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+	std::wstring meshPath{ L"./Resources/Models/fairyforest.obj" };
+#endif
 
 
 #if defined(HARDWARE_RENDER)
-	mainDXRaster(wnd, camera);
+	mainDXRaster(wnd, camera, meshPath);
 #elif defined(CUSTOM_RENDER)
-	mainCompuRaster(wnd, camera);
+	mainCompuRaster(wnd, camera, meshPath);
 #endif
 }
 
-void mainDXRaster(const Window& window, Camera& camera)
+void mainDXRaster(const Window& window, Camera& camera, std::wstring meshPath)
 {
 	TimeSettings& timeSettings = TimeSettings::GetInstance();
 
@@ -65,7 +77,7 @@ void mainDXRaster(const Window& window, Camera& camera)
 
 	//std::vector<uint32_t> indices{ 0, 1, 2 };
 
-	ObjReader::LoadModel(L"./Resources/Models/vehicle.obj", positions, normals, uvs, indices);
+	ObjReader::LoadModel(meshPath, positions, normals, uvs, indices);
 
 	TriangleMesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	Material mat{ hwRenderer.GetDevice(), L"./Resources/HardwareShader/VS_PosNormUV.hlsl", nullptr, nullptr, nullptr, L"Resources/HardwareShader/PS_LambertDiffuse.hlsl" };
@@ -94,7 +106,7 @@ void mainDXRaster(const Window& window, Camera& camera)
 	}
 }
 
-void mainCompuRaster(const Window& window, Camera& camera)
+void mainCompuRaster(const Window& window, Camera& camera, std::wstring meshPath)
 {
 	TimeSettings& timeSettings = TimeSettings::GetInstance();
 
@@ -127,13 +139,13 @@ void mainCompuRaster(const Window& window, Camera& camera)
 
 	//std::vector<uint32_t> indices{ 0, 1, 2, 0, 3, 1, 4, 0, 2, 4, 3, 0, 2, 5, 1 };
 
-	ObjReader::LoadModel(L"./Resources/Models/fairyforest.obj", positions, normals, uvs, indices);
+	ObjReader::LoadModel(meshPath, positions, normals, uvs, indices);
 #if defined(CUSTOM_RENDER_NAIVE)
 	CompuRaster::Mesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	CompuRaster::NaiveMaterial mat{ dcRenderer.GetDevice(), L"./Resources/SoftwareShader/TestPipeline.hlsl" };
 	mesh.SetMaterial(dcRenderer.GetDevice(), &mat);
 
-#elif defined(CUSTOM_RENDER_PIPELINE)
+#elif defined(CUSTOM_RENDER_PIPELINE_BINNING)
 	CompuRaster::CompuMesh mesh{ std::move(positions), std::move(normals), std::move(uvs), std::move(indices) };
 	CompuRaster::Material mat{};
 	mat.Init(dcRenderer.GetDevice(), L"./Resources/SoftwareShader/Pipeline/VertexShader.hlsl", L"");
@@ -164,7 +176,7 @@ void mainCompuRaster(const Window& window, Camera& camera)
 		dcRenderer.ClearBuffers();
 #if defined(CUSTOM_RENDER_NAIVE)
 		dcRenderer.Draw(&camera, &mesh);
-#elif defined(CUSTOM_RENDER_PIPELINE)
+#elif defined(CUSTOM_RENDER_PIPELINE_BINNING)
 		dcRenderer.DrawPipeline(pipeline, &camera, &mesh);
 #endif
 		dcRenderer.Present();

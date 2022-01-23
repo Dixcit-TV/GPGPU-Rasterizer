@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "ObjReader.h"
 
-void ObjReader::LoadModel(const std::wstring& objPath, std::vector<DirectX::XMFLOAT3>& positions, std::vector<DirectX::XMFLOAT3>& normals, std::vector<DirectX::XMFLOAT2>& uvs, std::vector<uint32_t>& indexBuffer)
+void ObjReader::LoadModel(const std::wstring& objPath, std::vector<DirectX::XMFLOAT3>& positions, std::vector<DirectX::XMFLOAT3>& normals, std::vector<DirectX::XMFLOAT2>&, std::vector<uint32_t>& indexBuffer)
 {
 	using namespace DirectX;
 
@@ -58,14 +58,13 @@ void ObjReader::LoadModel(const std::wstring& objPath, std::vector<DirectX::XMFL
 	indexBuffer.reserve(tmpFaces.size());
 	positions.reserve(tmpFaces.size());
 	normals.reserve(tmpFaces.size());
-	uvs.reserve(tmpFaces.size());
 	constexpr UINT vFaceCount{ 3 };
 
 	//construct vertex and index buffer based on faces information
 	for (const std::string& faceStr : tmpFaces)
 	{
-		int iVs[vFaceCount]{}, iUvs[vFaceCount]{}, iNs[vFaceCount]{};
-		[[maybe_unused]] int ret = sscanf_s(faceStr.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d", &iVs[0], &iUvs[0], &iNs[0], &iVs[1], &iUvs[1], &iNs[1], &iVs[2], &iUvs[2], &iNs[2]);
+		int iVs[vFaceCount]{}, iNs[vFaceCount]{};
+		[[maybe_unused]] int ret = sscanf_s(faceStr.c_str(), "f %d/%*d/%d %d/%*d/%d %d/%*d/%d", &iVs[0], &iNs[0], &iVs[1], &iNs[1], &iVs[2], &iNs[2]);
 
 		for (int idx{}; idx < vFaceCount; ++idx)
 		{
@@ -74,20 +73,14 @@ void ObjReader::LoadModel(const std::wstring& objPath, std::vector<DirectX::XMFL
 			if (!tmpVNormals.empty())
 				normal = tmpVNormals[iNs[idx] - 1];
 
-			XMFLOAT2 uv{};
-			if (!tmpUVs.empty())
-				uv = tmpUVs[iUvs[idx] - 1];
-
 			int64_t vIdx{ GetVertexIdx(position, positions) };
 
 			if (vIdx == -1
-				|| XMVector3NotEqual(XMLoadFloat3(&normal), XMLoadFloat3(&normals[static_cast<uint32_t>(vIdx)]))
-				|| XMVector2NotEqual(XMLoadFloat2(&uv), XMLoadFloat2(&uvs[static_cast<uint32_t>(vIdx)])))
+				|| XMVector3NotEqual(XMLoadFloat3(&normal), XMLoadFloat3(&normals[static_cast<uint32_t>(vIdx)])))
 			{
 				vIdx = positions.size();
 				positions.push_back(position);
 				normals.push_back(normal);
-				uvs.push_back(uv);
 			}
 
 			indexBuffer.push_back(static_cast<uint32_t>(vIdx));
@@ -97,7 +90,6 @@ void ObjReader::LoadModel(const std::wstring& objPath, std::vector<DirectX::XMFL
 	indexBuffer.shrink_to_fit();
 	positions.shrink_to_fit();
 	normals.shrink_to_fit();
-	uvs.shrink_to_fit();
 }
 
 int64_t ObjReader::GetVertexIdx(const DirectX::XMFLOAT3& vertexPos, const std::vector<DirectX::XMFLOAT3>& vertexPositions)
