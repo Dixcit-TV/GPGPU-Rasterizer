@@ -1,7 +1,7 @@
 #include "../Libs/Common.hlsli"
 
 #define GROUP_X 32
-#define GROUP_Y 32
+#define GROUP_Y 16
 #define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
 #define THREAD_COUNT (GROUP_X * GROUP_Y)

@@ -4,20 +4,10 @@
 #define VIEWPORT_HEIGHT 1080.f
 
 #define GROUP_X 32
-#define GROUP_Y 32
+#define GROUP_Y 16
 #define GROUP_DIMs GROUP_X, GROUP_Y, 1
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
 #define THREAD_COUNT (GROUP_X * GROUP_Y)
-
-//cbuffer ViewportInfo
-//{
-//	float2 G_VIEWPORT_SIZE;
-//}
-//
-//cbuffer DispatchInfo
-//{
-//	uint3 G_DISPATCH_DIMS;
-//}
 
 struct Vertex_In
 {

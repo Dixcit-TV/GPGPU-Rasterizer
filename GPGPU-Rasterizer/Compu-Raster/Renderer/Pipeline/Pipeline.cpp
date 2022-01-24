@@ -224,7 +224,7 @@ namespace CompuRaster
 		pmesh->SetupDrawInfo(pcamera, pdeviceContext);
 		ID3D11UnorderedAccessView* outUAV{ pmesh->GetVertexOutBufferUAV() };
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, &outUAV, nullptr);
-		pdeviceContext->Dispatch(static_cast<UINT>(ceil(vCount / 1024.f)), 1, 1);
+		pdeviceContext->Dispatch(static_cast<UINT>(ceil(vCount / 512.f)), 1, 1);
 		ID3D11UnorderedAccessView* nullUav[] = { nullptr };
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
 
@@ -234,33 +234,11 @@ namespace CompuRaster
 
 		ID3D11ShaderResourceView* geoSrvs[]{ pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
 		pdeviceContext->CSSetShaderResources(0, 2, geoSrvs);
-		pdeviceContext->Dispatch(static_cast<UINT>(ceil(triCount / 1024.f)), 1, 1);
+		pdeviceContext->Dispatch(static_cast<UINT>(ceil(triCount / 512.f)), 1, 1);
 
 		pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
 		ID3D11ShaderResourceView* nullSrvs2[]{ nullptr, nullptr };
 		pdeviceContext->CSSetShaderResources(0, 2, nullSrvs2);
-
-		//BIN SHADER
-		//pdeviceContext->CSSetShader(m_pBinningShader->GetShader(), nullptr, 0);
-		//pdeviceContext->CSSetUnorderedAccessViews(2, 1, &m_pBinUAV, nullptr);
-		//pdeviceContext->CSSetShaderResources(0, 1, &m_pRasterDataSRV);
-		//pdeviceContext->Dispatch(64, 1, 1);
-
-		//pdeviceContext->CSSetUnorderedAccessViews(2, 1, nullUav, nullptr);
-		//ID3D11ShaderResourceView* nullSrvs[]{ nullptr };
-		//pdeviceContext->CSSetShaderResources(0, 1, nullSrvs);
-
-		////FINE SHADER
-		//pdeviceContext->CSSetShader(m_pFineShader->GetShader(), nullptr, 0);
-
-		//ID3D11ShaderResourceView* fineSrvs[]{ m_pRasterDataSRV, m_pBinSRV, pmesh->GetVertexOutBufferView(), pmesh->GetIndexBufferView() };
-		//pdeviceContext->CSSetShaderResources(0, 4, fineSrvs);
-		//pdeviceContext->Dispatch(30, 17, 1);
-		////pdeviceContext->Dispatch(4, 4, 1);
-		//ID3D11ShaderResourceView* nullSrvs4[]{ nullptr, nullptr, nullptr, nullptr };
-		//pdeviceContext->CSSetShaderResources(0, 4, nullSrvs4);
-
-		//pdeviceContext->ClearUnorderedAccessViewUint(m_pBinUAV, reinterpret_cast<const UINT*>(&DirectX::Colors::Black));
 
 		//BIN SHADER
 		pdeviceContext->CSSetShader(m_pBinningShader->GetShader(), nullptr, 0);
