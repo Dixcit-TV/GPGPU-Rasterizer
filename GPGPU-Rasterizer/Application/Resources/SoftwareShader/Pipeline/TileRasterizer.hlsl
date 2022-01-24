@@ -3,7 +3,7 @@
 #define VIEWPORT_WIDTH 1920.f
 #define VIEWPORT_HEIGHT 1080.f
 #define TILE_SIZE uint2(8, 8)
-#define BIN_SIZE uint2(16, 16)
+#define BIN_SIZE uint2(8, 8)
 #define BIN_PIXEL_SIZE (BIN_SIZE * TILE_SIZE)
 #define BINNING_DIMS uint2(ceil(VIEWPORT_WIDTH / BIN_PIXEL_SIZE.x), ceil(VIEWPORT_HEIGHT / BIN_PIXEL_SIZE.y))
 #define BIN_COUNT (BINNING_DIMS.x * BINNING_DIMS.y)
@@ -34,7 +34,7 @@ struct RasterData
 
 struct BinData
 {
-	uint2x4 coverage;
+	uint4 coverage;
 	uint triIdx;
 };
 
@@ -45,7 +45,7 @@ RWByteAddressBuffer G_BIN_COUNTER : register(u2);
 RWByteAddressBuffer G_BIN_TRI_COUNTER : register(u3);
 RWStructuredBuffer<BinData> G_TILE_BUFFER : register(u4);
 
-uint2x4 GetCoverage(uint4 clampedAabb, uint2 binSize);
+uint4 GetCoverage(uint4 clampedAabb, uint2 binSize);
 
 groupshared uint GroupBin;
 
@@ -113,17 +113,17 @@ void main(int threadId : SV_GroupIndex)
 	GroupMemoryBarrierWithGroupSync();
 }
 
-uint2x4 GetCoverage(uint4 clampedAabb, uint2 binSize)
+uint4 GetCoverage(uint4 clampedAabb, uint2 binSize)
 {
-	uint coverageMask[8] = { 0, 0, 0, 0, 0, 0, 0, 0};
+	uint coverageMask[4] = { 0, 0, 0, 0 };
 	for (uint y = clampedAabb.y; y < clampedAabb.w; ++y)
 	{
 		for (uint x = clampedAabb.x; x < clampedAabb.z; ++x)
 		{
 			const uint bitOffset = y * binSize.x + x;
-			coverageMask[y / 2] |= 1 << (bitOffset % 32);
+			coverageMask[y / 4] |= 1 << (bitOffset % 32);
 		}
 	}
 
-	return uint2x4( coverageMask[0], coverageMask[1], coverageMask[2], coverageMask[3], coverageMask[4], coverageMask[5], coverageMask[6], coverageMask[7]);
+	return uint4( coverageMask[0], coverageMask[1], coverageMask[2], coverageMask[3] );
 }

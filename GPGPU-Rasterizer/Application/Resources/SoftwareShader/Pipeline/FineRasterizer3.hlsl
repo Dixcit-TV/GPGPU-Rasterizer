@@ -3,7 +3,7 @@
 #define VIEWPORT_WIDTH 1920.f
 #define VIEWPORT_HEIGHT 1080.f
 #define TILE_SIZE uint2(8, 8)
-#define BIN_SIZE uint2(16, 16)
+#define BIN_SIZE uint2(8, 8)
 #define BIN_TILE_COUNT (BIN_SIZE.x * BIN_SIZE.y)
 #define BIN_PIXEL_SIZE (BIN_SIZE * TILE_SIZE)
 #define BINNING_DIMS uint2(ceil(VIEWPORT_WIDTH / BIN_PIXEL_SIZE.x), ceil(VIEWPORT_HEIGHT / BIN_PIXEL_SIZE.y))
@@ -48,7 +48,7 @@ struct RasterData
 
 struct BinData
 {
-	uint2x4 coverage;
+	uint4 coverage;
 	uint triIdx;
 };
 
@@ -145,8 +145,7 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 				if (triIndex < triCount)
 				{
 					triBinData = G_TILE_BUFFER[binDataStart + triIndex];
-					const uint bitIdx = (binTileId % 128);
-					triMask = (triBinData.coverage[binTileId / 128][bitIdx / 32] & (1 << (bitIdx % 32))) != 0;
+					triMask = (triBinData.coverage[binTileId / 32] & (1 << (binTileId % 32))) != 0;
 				}
 				InterlockedOr(GroupMask[groupThreadId.y], triMask << groupThreadId.x);
 				GroupMemoryBarrierWithGroupSync();
