@@ -1,7 +1,7 @@
 #include "../Libs/Common.hlsli"
 
-#define VIEWPORT_WIDTH 1920.f
-#define VIEWPORT_HEIGHT 1080.f
+#define VIEWPORT_WIDTH 1280.f
+#define VIEWPORT_HEIGHT 720.f
 #define TILE_SIZE uint2(8, 8)
 #define BIN_SIZE uint2(8, 8)
 #define BIN_TILE_COUNT (BIN_SIZE.x * BIN_SIZE.y)

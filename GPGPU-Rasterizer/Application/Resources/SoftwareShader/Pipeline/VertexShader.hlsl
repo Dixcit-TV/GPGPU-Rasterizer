@@ -1,7 +1,7 @@
 #include "../Libs/Common.hlsli"
 
-#define VIEWPORT_WIDTH 1920.f
-#define VIEWPORT_HEIGHT 1080.f
+#define VIEWPORT_WIDTH 1280.f
+#define VIEWPORT_HEIGHT 720.f
 
 #define GROUP_X 32
 #define GROUP_Y 16

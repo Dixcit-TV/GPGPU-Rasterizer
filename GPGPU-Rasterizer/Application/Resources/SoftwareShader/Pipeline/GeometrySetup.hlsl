@@ -6,8 +6,8 @@
 #define UINT3_GROUP_DIMs uint3(GROUP_DIMs)
 #define THREAD_COUNT (GROUP_X * GROUP_Y)
 
-#define VIEWPORT_WIDTH 1920.f
-#define VIEWPORT_HEIGHT 1080.f
+#define VIEWPORT_WIDTH 1280.f
+#define VIEWPORT_HEIGHT 720.f
 
 cbuffer ObjectInfo : register(b0)
 {

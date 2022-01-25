@@ -14,8 +14,8 @@
 #include "Renderer/Pipeline/Material.h"
 #include "Renderer/Pipeline/Pipeline.h"
 
-//#define HARDWARE_RENDER
-#define CUSTOM_RENDER
+#define HARDWARE_RENDER
+//#define CUSTOM_RENDER
 
 #define CUSTOM_RENDER_NAIVE
 //#define CUSTOM_RENDER_PIPELINE_BINNING
@@ -35,11 +35,11 @@ int wmain(int argc, wchar_t* argv[])
 	UNREFERENCED_PARAMETER(argv);
 
 	wchar_t windowName[]{ TEXT("GPU Rasterizer - Dixcit") };
-	Window wnd{ windowName, 1920u, 1080u };
+	Window wnd{ windowName, 1280u, 720u };
 	wnd.Init(&WndProc_Implementation);
 
 #if defined(VEHICLE_OBJ)
-	Camera camera{ DirectX::XMFLOAT3{0.f, 0.f, -100.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
+	Camera camera{ DirectX::XMFLOAT3{0.f, 0.f, -37.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };
 	std::wstring meshPath{ L"./Resources/Models/vehicle.obj" };
 #elif defined(BUNNY_OBJ)
 	Camera camera{ DirectX::XMFLOAT3{0.f, 1.2f, -5.f}, DirectX::XMFLOAT3{0.f, 0.f, 1.f}, static_cast<float>(wnd.GetWidth()) / static_cast<float>(wnd.GetHeight()) };

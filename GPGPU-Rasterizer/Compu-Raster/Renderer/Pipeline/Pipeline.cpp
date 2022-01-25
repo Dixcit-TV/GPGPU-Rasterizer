@@ -89,7 +89,7 @@ namespace CompuRaster
 		const UINT dispatchCount = 16;
 		const UINT batchSize = static_cast<UINT>(ceil(static_cast<float>(triangleCount) / static_cast<float>(dispatchCount)));
 		const UINT queueSize = dispatchCount * batchSize;
-		const UINT binCount{ 30 * 17 };
+		const UINT binCount{ 20 * 12 };
 		UINT elemCount = binCount * (queueSize + dispatchCount);
 
 #pragma region INPUT_BUFFER
@@ -258,7 +258,7 @@ namespace CompuRaster
 
 		ID3D11ShaderResourceView* tileSrvs[]{ m_pBinSRV, m_pRasterDataSRV };
 		pdeviceContext->CSSetShaderResources(0, 2, tileSrvs);
-		pdeviceContext->Dispatch(30, 17, 1);
+		pdeviceContext->Dispatch(20, 12, 1);
 
 		ID3D11UnorderedAccessView* nullUavs3[]{ nullptr, nullptr, nullptr };
 		pdeviceContext->CSSetUnorderedAccessViews(2, 3, nullUavs3, nullptr);
