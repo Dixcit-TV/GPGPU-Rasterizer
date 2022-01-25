@@ -48,7 +48,7 @@ struct RasterData
 
 struct BinData
 {
-	uint4 coverage;
+	uint2 coverage;
 	uint triIdx;
 };
 

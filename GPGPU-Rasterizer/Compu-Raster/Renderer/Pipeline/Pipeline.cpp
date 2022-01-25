@@ -128,7 +128,7 @@ namespace CompuRaster
 
 		// Ouput buffer structure is a uint2x4, so 8 * 4 bytes stride, used as a bit mask for the 16*16 tiles (256 bits, 256 tiles)
 		elemCount = binCount * queueSize;
-		const UINT tileStride = 4 * (4 + 1); 
+		const UINT tileStride = 4 * (2 + 1); 
 		D3D11_BUFFER_DESC tileBufferDesc{ };
 		tileBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 		tileBufferDesc.ByteWidth = elemCount * tileStride;

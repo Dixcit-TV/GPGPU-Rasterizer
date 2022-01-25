@@ -34,7 +34,7 @@ struct RasterData
 
 struct BinData
 {
-	uint4 coverage;
+	uint2 coverage;
 	uint triIdx;
 };
 
@@ -45,7 +45,7 @@ RWByteAddressBuffer G_BIN_COUNTER : register(u2);
 RWByteAddressBuffer G_BIN_TRI_COUNTER : register(u3);
 RWStructuredBuffer<BinData> G_TILE_BUFFER : register(u4);
 
-uint4 GetCoverage(uint4 clampedAabb, uint2 binSize);
+uint2 GetCoverage(uint4 clampedAabb, uint2 binSize);
 
 groupshared uint GroupBin;
 
@@ -113,17 +113,17 @@ void main(int threadId : SV_GroupIndex)
 	GroupMemoryBarrierWithGroupSync();
 }
 
-uint4 GetCoverage(uint4 clampedAabb, uint2 binSize)
+uint2 GetCoverage(uint4 clampedAabb, uint2 binSize)
 {
-	uint coverageMask[4] = { 0, 0, 0, 0 };
+	uint coverageMask[2] = { 0, 0 };
 	for (uint y = clampedAabb.y; y < clampedAabb.w; ++y)
 	{
 		for (uint x = clampedAabb.x; x < clampedAabb.z; ++x)
 		{
 			const uint bitOffset = y * binSize.x + x;
-			coverageMask[y / 4] |= 1 << (bitOffset % 32);
+			coverageMask[bitOffset / 32] |= 1 << (bitOffset % 32);
 		}
 	}
 
-	return uint4( coverageMask[0], coverageMask[1], coverageMask[2], coverageMask[3] );
+	return uint2( coverageMask[0], coverageMask[1] );
 }
