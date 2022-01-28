@@ -109,8 +109,6 @@ void main(int threadId : SV_GroupIndex)
 
 	if (threadId == 0)
 		G_BIN_TRI_COUNTER.Store(binIdx * 4, totalCount);
-
-	GroupMemoryBarrierWithGroupSync();
 }
 
 uint2 GetCoverage(uint4 clampedAabb, uint2 binSize)

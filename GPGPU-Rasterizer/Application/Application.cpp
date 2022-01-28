@@ -14,15 +14,15 @@
 #include "Renderer/Pipeline/Material.h"
 #include "Renderer/Pipeline/Pipeline.h"
 
-#define HARDWARE_RENDER
-//#define CUSTOM_RENDER
+//#define HARDWARE_RENDER
+#define CUSTOM_RENDER
 
-#define CUSTOM_RENDER_NAIVE
-//#define CUSTOM_RENDER_PIPELINE_BINNING
+//#define CUSTOM_RENDER_NAIVE
+#define CUSTOM_RENDER_PIPELINE_BINNING
 
-#define VEHICLE_OBJ
+//#define VEHICLE_OBJ
 //#define BUNNY_OBJ
-//#define FAIRYFOREST_OBJ
+#define FAIRYFOREST_OBJ
 
 void mainDXRaster(const Window& window, Camera& camera, std::wstring meshPath);
 void mainCompuRaster(const Window& window, Camera& camera, std::wstring meshPath);

@@ -123,7 +123,6 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 		uint2 pixel = tileAabb.xy + uint2(threadId % TILE_SIZE.x, threadId / TILE_SIZE.x);
 		unorm float4 color = G_RENDER_TARGET[pixel];
 		float depth = G_DEPTH_BUFFER[pixel];
-		float depth2 = G_DEPTH_BUFFER[pixel];
 
 		uint triIndex = threadId;
 		uint loop = 0;
@@ -131,7 +130,7 @@ void main(int threadId : SV_GroupIndex, int3 groupThreadId : SV_GroupThreadID)
 		{
 			++loop;
 			int batchCount = 0;
-			uint count = 0;
+			uint count;
 			do {
 				count = 0;
 				if (threadId == 0)
