@@ -23,3 +23,4 @@
 /GPGPU-Rasterizer/Compu-Raster/x64
 /GPGPU-Rasterizer/Compu-Raster/Win32
 *.diagsession
+/GPGPU-Rasterizer/.vs/GPGPU-Rasterizer/config
