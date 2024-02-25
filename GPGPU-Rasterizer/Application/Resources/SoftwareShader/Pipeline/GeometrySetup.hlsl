@@ -42,13 +42,11 @@ bool IsClipped(float4 vertex, float viewportWidth, float viewportHeight);
 uint4 GetAabb(float2 v0, float2 v1, float2 v2);
 
 [numthreads(GROUP_DIMs)]
-void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
+void main(const uint3 DispatchThreadID : SV_DispatchThreadID)
 {
-	const uint numGroup = ceil(triangleCount / (float)THREAD_COUNT);
-	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(numGroup, 1, 1));
-	if (globalThreadId >= triangleCount)
-		return;
-
+	const uint numGroup = ceil(triangleCount / float(THREAD_COUNT));
+	const uint globalThreadId = FlattenID(DispatchThreadID, uint3(numGroup, 1, 1) * UINT3_GROUP_DIMs);
+	
 	RasterData data = (RasterData)0;
 	uint3 tri = G_INDEX_BUFFER.Load3(globalThreadId * 3 * 4);
 
@@ -84,9 +82,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 
 bool IsClipped(float4 vertex, float viewportWidth, float viewportHeight)
 {
-	return vertex.x < 0.f || vertex.y < 0.f
-		|| vertex.x > viewportWidth || vertex.y > viewportHeight
-		|| vertex.z < 0.f || vertex.z > 1.f;
+	return any(vertex.xyz < 0.f || vertex.xyz > float3(viewportWidth, viewportHeight, 1.f));
 }
 
 uint4 GetAabb(float2 v0, float2 v1, float2 v2)

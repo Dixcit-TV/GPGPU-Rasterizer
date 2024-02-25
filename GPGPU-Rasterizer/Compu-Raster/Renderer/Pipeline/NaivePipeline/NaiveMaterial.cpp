@@ -14,7 +14,7 @@ namespace CompuRaster
 		, m_pPipelineShader{ csPath != nullptr ? new Shader<ID3D11ComputeShader>(pdevice, csPath) : nullptr }
 		, m_InputLayoutSize{ 0 }
 	{
-		APP_LOG_ERROR(L"Could not create Pipeline Shader !", m_pPipelineShader);
+		APP_ASSERT_ERROR(L"Could not create Pipeline Shader !", m_pPipelineShader);
 		//GenerateInputLayout(pdevice);
 		InitConstantBuffers(pdevice, m_pPipelineShader, EShaderType::Compute);
 	}

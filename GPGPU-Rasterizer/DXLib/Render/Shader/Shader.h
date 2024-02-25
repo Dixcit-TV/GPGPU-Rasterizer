@@ -39,11 +39,8 @@ template<typename SHADER_TYPE>
 Shader<SHADER_TYPE>::Shader(ID3D11Device* pdevice, const wchar_t* filePath, const char* entryPoint)
 	: m_pShader{ nullptr }
 {
-	HRESULT res{ pdevice->CreateClassLinkage(&m_ShaderLinkage) };
-	APP_LOG_WARNING(L"Class Linkage object could not be created for '" + std::wstring(filePath) + L"' !", SUCCEEDED(res));
-
-	res = Init(pdevice, filePath, entryPoint);
-	APP_LOG_ERROR(L"Shader '" + std::wstring(filePath) + L"' could not be loaded !", SUCCEEDED(res));
+	APP_LOG_IF_WARNING(SUCCEEDED(pdevice->CreateClassLinkage(&m_ShaderLinkage)), L"Class Linkage object could not be created for '" + std::wstring(filePath) + L"' !");
+	APP_LOG_IF_WARNING(SUCCEEDED(Init(pdevice, filePath, entryPoint)), L"Shader '" + std::wstring(filePath) + L"' could not be loaded !");
 }
 
 template<typename SHADER_TYPE>

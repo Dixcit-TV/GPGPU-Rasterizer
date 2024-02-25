@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -96,6 +96,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -115,6 +116,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -134,6 +136,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -153,6 +156,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -166,9 +170,11 @@
     <ClInclude Include="Camera\Camera.h" />
     <ClInclude Include="Common\Helpers.h" />
     <ClInclude Include="Common\ObjReader.h" />
+    <ClInclude Include="Managers\Profiling\Collector\GPUCollectors.h" />
     <ClInclude Include="Managers\Logger.h" />
     <ClInclude Include="Managers\Singleton.h" />
     <ClInclude Include="Managers\TimeSettings.h" />
+    <ClInclude Include="Managers\Profiling\Profiler.h" />
     <ClInclude Include="Render\DXRenderer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Render\Shader\Shader.h" />
@@ -179,8 +185,10 @@
     <ClCompile Include="Camera\Camera.cpp" />
     <ClCompile Include="Common\Helpers.cpp" />
     <ClCompile Include="Common\ObjReader.cpp" />
+    <ClCompile Include="Managers\Profiling\Collector\GPUCollectors.cpp" />
     <ClCompile Include="Managers\Logger.cpp" />
     <ClCompile Include="Managers\TimeSettings.cpp" />
+    <ClCompile Include="Managers\Profiling\Profiler.cpp" />
     <ClCompile Include="Render\DXRenderer.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

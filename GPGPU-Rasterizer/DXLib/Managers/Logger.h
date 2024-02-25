@@ -1,5 +1,6 @@
 #pragma once
 #include "Singleton.h"
+#include <cassert>
 
 enum class ELogSeverity
 {
@@ -9,15 +10,23 @@ enum class ELogSeverity
 #define WFILE1(x) L##x
 #define WFILE(x) WFILE1(x)
 
-#if defined(DEBUG) | defined(_DEBUG)
+#if defined(DEBUG) | defined(_DEBUG) | defined(FORCE_LOGS)
 	#define APP_LOG(severity, message, assertion, appendLineAndFile) Logger::GetInstance().Log(severity, message, assertion, appendLineAndFile, __LINE__, WFILE(__FILE__));
+	#define APP_LOG_ASSERT(severity, message, assertion, appendLineAndFile) APP_LOG(severity, message, assertion, appendLineAndFile)
+	#define APP_LOG_IF(severity, message, assertion, appendLineAndFile) APP_LOG(severity, message, assertion, appendLineAndFile)
 #else
 	#define APP_LOG(severity, message, assertion, appendLineAndFile)
+	#define APP_LOG_ASSERT(severity, message, assertion, appendLineAndFile) assert(assertion);
+	#define APP_LOG_IF(severity, message, assertion, appendLineAndFile) (assertion)
 #endif
 
 #define APP_LOG_INFO(message) APP_LOG(ELogSeverity::Info, message, false, false)
-#define APP_LOG_WARNING(message, assertion) APP_LOG(ELogSeverity::Warning, message, assertion, true)
-#define APP_LOG_ERROR(message, assertion) APP_LOG(ELogSeverity::Error, message, assertion, true)
+#define APP_LOG_WARNING(message) APP_LOG(ELogSeverity::Warning, message, false, true)
+#define APP_LOG_IF_WARNING(assertion, message) APP_LOG_IF(ELogSeverity::Warning, message, assertion, true)
+#define APP_ASSERT_WARNING(assertion, message) APP_LOG_ASSERT(ELogSeverity::Warning, message, assertion, true)
+#define APP_LOG_ERROR(message) APP_LOG(ELogSeverity::Error, message, false, true)
+#define APP_LOG_IF_ERROR(assertion, message) APP_LOG_IF(ELogSeverity::Error, message, assertion, true)
+#define APP_ASSERT_ERROR(assertion, message) APP_LOG_ASSERT(ELogSeverity::Error, message, assertion, true)
 
 class Logger : public Singleton<Logger>
 {

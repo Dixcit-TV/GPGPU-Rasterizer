@@ -36,25 +36,15 @@ cbuffer ObjectInfo : register(b0)
 StructuredBuffer<Vertex_In> G_VERTEX_BUFFER;
 RWStructuredBuffer<Vertex_Out> G_TRANS_VERTEX_BUFFER : register(u2);
 
-Vertex_Out Transform(Vertex_In v)
-{
-	Vertex_Out vOut = (Vertex_Out)0;
-	vOut.position = mul(worldViewProj, float4(v.position, 1.f));
-	vOut.normal = mul((float3x3)world, v.normal);
-	return vOut;
-}
-
-void ProjectionToNDC(inout float4 vertex);
-void NDCToScreen(inout float4 vertex, float viewportWidth, float viewportHeight);
+Vertex_Out Transform(Vertex_In v);
+void ProjectionToNDC(inout float4 vPos);
+void NDCToScreen(inout float4 vPos, float viewportWidth, float viewportHeight);
 
 [numthreads(GROUP_DIMs)]
-void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
+void main(const uint3 DispatchThreadID : SV_DispatchThreadID)
 {
-	const uint numGroup = ceil(vertexCount / (float)THREAD_COUNT);
-	const uint globalThreadId = FlattenedGlobalThreadId(groupIndex, dispatchID, UINT3_GROUP_DIMs, uint3(numGroup, 1, 1) /*G_DISPATCH_DIMS*/);
-
-	if (globalThreadId >= vertexCount)
-		return;
+	const uint numGroup = ceil(vertexCount / float(THREAD_COUNT));
+	const uint globalThreadId = FlattenID(DispatchThreadID, uint3(numGroup, 1, 1) * UINT3_GROUP_DIMs);
 
 	Vertex_In v = G_VERTEX_BUFFER[globalThreadId];
 
@@ -65,6 +55,15 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_GroupId)
 
 	G_TRANS_VERTEX_BUFFER[globalThreadId] = vOut;
 }
+
+Vertex_Out Transform(Vertex_In v)
+{
+	Vertex_Out vOut = (Vertex_Out) 0;
+	vOut.position = mul(worldViewProj, float4(v.position, 1.f));
+	vOut.normal = mul((float3x3) world, v.normal);
+	return vOut;
+}
+
 
 void ProjectionToNDC(inout float4 vPos)
 {

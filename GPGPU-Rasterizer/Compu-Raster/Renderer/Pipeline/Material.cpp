@@ -25,10 +25,10 @@ namespace CompuRaster
 	void Material::Init(ID3D11Device* pdevice, const wchar_t* vsPath, const wchar_t*)
 	{
 		m_pVertexShader = new ComputeShader(pdevice, vsPath);
-		APP_LOG_ERROR(L"Could not create Vertex Shader !", m_pVertexShader);
+		APP_ASSERT_ERROR(L"Could not create Vertex Shader !", m_pVertexShader);
 
 		//m_pPixelShader = new ComputeShader(pdevice, psPath);
-		//APP_LOG_ERROR(L"Could not create Pixel Shader !", m_pPixelShader);
+		//APP_ASSERT_ERROR(L"Could not create Pixel Shader !", m_pPixelShader);
 
 		InitConstantBuffers(pdevice, m_pVertexShader, EShaderType::Compute);
 	}

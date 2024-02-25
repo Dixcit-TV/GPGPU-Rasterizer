@@ -35,7 +35,7 @@ namespace CompuRaster
 		if (m_bInitialized)
 			return res;
 
-		APP_LOG_ERROR(L"Window not initialized !", window.IsInitialized());
+		APP_ASSERT_ERROR(window.IsInitialized(), L"Window not initialized !");
 
 		UINT crDeviceFlag{ D3D11_CREATE_DEVICE_SINGLETHREADED };
 
@@ -46,32 +46,32 @@ namespace CompuRaster
 		D3D_FEATURE_LEVEL featureLevel{ };
 
 		res = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, crDeviceFlag, nullptr, 0, D3D11_SDK_VERSION, &m_pDxDevice, &featureLevel, &m_pDxDeviceContext);
-		APP_LOG_ERROR(L"Could not create DX11 device !", SUCCEEDED(res));
-		APP_LOG_ERROR(L"Supported feature level is below D3D_FEATURE_LEVEL_11_0 !", featureLevel >= D3D_FEATURE_LEVEL_11_0);
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Could not create DX11 device !");
+		APP_ASSERT_ERROR(featureLevel >= D3D_FEATURE_LEVEL_11_0, L"Supported feature level is below D3D_FEATURE_LEVEL_11_0 !");
 
 		IDXGIDevice* dxgiDevice;
 		res = m_pDxDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
-		APP_LOG_ERROR(L"Could not query DXGI device !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Could not query DXGI device !");
 
 		IDXGIAdapter* dxgiAdapter;
 		res = dxgiDevice->GetAdapter(&dxgiAdapter);
-		APP_LOG_ERROR(L"Could not query DXGI adapter !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Could not query DXGI adapter !");
 
 		IDXGIFactory* dxgiFactory;
 		res = dxgiAdapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&dxgiFactory));
-		APP_LOG_ERROR(L"Could not query DXGI factory !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Could not query DXGI factory !");
 
 		IDXGIOutput* tempOutput{};
 		res = dxgiAdapter->EnumOutputs(0, &tempOutput);
-		APP_LOG_ERROR(L"Failed to get temp IDXGIOutput from adapter !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Failed to get temp IDXGIOutput from adapter !");
 
 		UINT numOutput{ };
 		res = tempOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, NULL, &numOutput, nullptr);
-		APP_LOG_ERROR(L"Failed to request the number of Adapter outputs !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Failed to request the number of Adapter outputs !");
 
 		DXGI_MODE_DESC* bbDescs{ new DXGI_MODE_DESC[numOutput] };
 		res = tempOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, NULL, &numOutput, bbDescs);
-		APP_LOG_ERROR(L"Failed to request Adapter output list !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Failed to request Adapter output list !");
 
 		UINT bbDescIdx{ numOutput - 1 };
 
@@ -102,11 +102,11 @@ namespace CompuRaster
 		delete[] bbDescs;
 
 		res = dxgiFactory->CreateSwapChain(m_pDxDevice, &swapDesc, &m_pDxSwapChain);
-		APP_LOG_ERROR(L"Failed to create swap chain !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Failed to create swap chain !");
 
 		ID3D11Texture2D* pbackBuffer;
 		res = m_pDxSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pbackBuffer));
-		APP_LOG_ERROR(L"Failed to query swap chain's back buffer !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Failed to query swap chain's back buffer !");
 
 		D3D11_TEXTURE2D_DESC bbDesc{};
 		pbackBuffer->GetDesc(&bbDesc);
@@ -117,14 +117,14 @@ namespace CompuRaster
 		rtUAVDesc.Texture2D.MipSlice = 0;
 
 		res = m_pDxDevice->CreateUnorderedAccessView(pbackBuffer, &rtUAVDesc, &m_pRenderTargetUAV);
-		APP_LOG_ERROR(L"Failed to create render target UAV !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Failed to create render target UAV !");
 
 		D3D11_TEXTURE2D_DESC depthStencilDesc{ bbDesc };
 		depthStencilDesc.Format = DXGI_FORMAT_R32_FLOAT;
 
 		ID3D11Texture2D* pdepthBuffer;
 		res = m_pDxDevice->CreateTexture2D(&depthStencilDesc, nullptr, &pdepthBuffer);
-		APP_LOG_ERROR(L"Failed to create depth buffer texture !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Failed to create depth buffer texture !");
 
 		D3D11_UNORDERED_ACCESS_VIEW_DESC depthUAVDesc{};
 		depthUAVDesc.Format = depthStencilDesc.Format;
@@ -132,7 +132,7 @@ namespace CompuRaster
 		depthUAVDesc.Texture2D.MipSlice = 0;
 
 		res = m_pDxDevice->CreateUnorderedAccessView(pdepthBuffer, &depthUAVDesc, &m_pDepthUAV);
-		APP_LOG_ERROR(L"Failed to create depth buffer UAV !", SUCCEEDED(res));
+		APP_ASSERT_ERROR(SUCCEEDED(res), L"Failed to create depth buffer UAV !");
 
 		Helpers::SafeRelease(pdepthBuffer);
 		Helpers::SafeRelease(pbackBuffer);

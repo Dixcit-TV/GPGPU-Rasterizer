@@ -12,6 +12,8 @@
     <ClInclude Include="Managers\TimeSettings.h" />
     <ClInclude Include="Managers\Singleton.h" />
     <ClInclude Include="Managers\Logger.h" />
+    <ClInclude Include="Managers\Profiling\Profiler.h" />
+    <ClInclude Include="Managers\Profiling\Collector\GPUCollectors.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -23,5 +25,7 @@
     <ClCompile Include="Common\ObjReader.cpp" />
     <ClCompile Include="Managers\TimeSettings.cpp" />
     <ClCompile Include="Managers\Logger.cpp" />
+    <ClCompile Include="Managers\Profiling\Profiler.cpp" />
+    <ClCompile Include="Managers\Profiling\Collector\GPUCollectors.cpp" />
   </ItemGroup>
 </Project>
